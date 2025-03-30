@@ -1,13 +1,13 @@
-use std::{io::{stdout, Stdout}, panic};
+use std::{
+    io::{Stdout, stdout},
+    panic,
+};
 
 use crossterm::{
     ExecutableCommand,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::{
-    Terminal,
-    backend::{Backend, CrosstermBackend},
-};
+use ratatui::{Terminal, backend::CrosstermBackend};
 
 pub fn init_terminal() -> color_eyre::Result<Terminal<CrosstermBackend<Stdout>>> {
     enable_raw_mode()?;
