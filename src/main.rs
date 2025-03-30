@@ -4,7 +4,7 @@ mod update;
 mod view;
 
 use model::Model;
-use update::{EventMessage, handle_event, update};
+use update::{handle_event, update};
 use view::View;
 
 use std::io;
@@ -19,9 +19,11 @@ fn main() -> color_eyre::Result<()> {
     while model.running {
         terminal.draw(|f| View::draw(&mut model, f))?;
 
-        let mut current_msg = handle_event(&model)?;
+        let current_msg = handle_event(&model)?;
 
-        update(&mut model, current_msg.unwrap());
+        if let Some(msg) = current_msg {
+            update(&mut model, msg);
+        }
     }
 
     tui::restore_terminal()?;

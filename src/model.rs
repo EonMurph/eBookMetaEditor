@@ -1,10 +1,12 @@
 use std::path::PathBuf;
 
-enum CurrentScreen {
+pub enum Page {
     Home,
     Quit,
-    DataInput,
-    BookEdit,
+    SeriesData,
+    BookData,
+    OrderBooks,
+    Loading,
 }
 
 pub struct Model {
@@ -14,7 +16,7 @@ pub struct Model {
     series_name: Option<String>,
     book_name: Option<String>,
     format: String,
-    current_screen: CurrentScreen,
+    pub current_screen: Page,
 }
 
 impl Model {
@@ -26,7 +28,7 @@ impl Model {
             series_name: None,
             book_name: None,
             format: "{book_name}".into(),
-            current_screen: CurrentScreen::Home,
+            current_screen: Page::Home,
         }
     }
 }
