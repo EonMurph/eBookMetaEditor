@@ -2,25 +2,39 @@ use std::time::Duration;
 
 use crossterm::event::{self, Event, KeyCode};
 
-use crate::model::Page;
+use crate::model::{Model, Page};
 
 pub enum EventMessage {
-    Start,
+    NextPage,
     Quit,
+    SetSeriesCounter(i8),
 }
 
-pub fn update(model: &mut crate::model::Model, msg: EventMessage) {
+pub fn update(model: &mut Model, msg: EventMessage) {
     match msg {
         EventMessage::Quit => model.running = false,
-        EventMessage::Start => model.current_screen = Page::SeriesData,
+        EventMessage::NextPage => {
+            model.current_page = match model.current_page {
+                Page::Home => Page::SeriesData,
+                Page::SeriesData => {
+                    model.set_num_series();
+                    Page::Home
+                }
+                _ => Page::Home,
+            }
+        }
+        EventMessage::SetSeriesCounter(s) => {
+            model.inputs.series_num = model.inputs.series_num.saturating_add(s);
+            model.inputs.series_num = model.inputs.series_num.clamp(0, i8::MAX);
+        }
     }
 }
 
-pub fn handle_event(_: &crate::model::Model) -> color_eyre::Result<Option<EventMessage>> {
+pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
     if event::poll(Duration::from_millis(250))? {
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Press {
-                return Ok(handle_key(key));
+                return Ok(handle_key(model, key));
             }
         }
     }
@@ -28,13 +42,20 @@ pub fn handle_event(_: &crate::model::Model) -> color_eyre::Result<Option<EventM
     Ok(None)
 }
 
-fn handle_key(key: event::KeyEvent) -> Option<EventMessage> {
+fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
     match key.code {
         KeyCode::Char('q') | KeyCode::Esc => Some(EventMessage::Quit),
         KeyCode::Char('c') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
             Some(EventMessage::Quit)
         }
-        KeyCode::Enter => Some(EventMessage::Start),
-        _ => None,
+        KeyCode::Enter => Some(EventMessage::NextPage),
+        _ => match model.current_page {
+            Page::SeriesData => match key.code {
+                KeyCode::Left => Some(EventMessage::SetSeriesCounter(-1)),
+                KeyCode::Right => Some(EventMessage::SetSeriesCounter(1)),
+                _ => None,
+            },
+            _ => None,
+        },
     }
 }

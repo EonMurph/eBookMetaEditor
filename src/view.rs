@@ -11,7 +11,7 @@ use ratatui::{
 pub struct View;
 
 impl View {
-    pub fn draw(model: &mut Model, frame: &mut Frame) {
+    pub fn draw(model: &Model, frame: &mut Frame) {
         let bar_length = 2;
         let chunks = Layout::vertical([
             Constraint::Max(bar_length),
@@ -23,9 +23,9 @@ impl View {
         View::draw_title_bar(frame, chunks[0]);
         View::draw_status_bar(frame, chunks[2]);
 
-        match model.current_screen {
+        match model.current_page {
             Page::Home => View::draw_home(frame, chunks[1]),
-            Page::SeriesData => View::draw_series_page(frame, chunks[1]),
+            Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
             Page::Quit => todo!(),
             _ => todo!(),
         };
@@ -74,12 +74,12 @@ impl View {
         frame.render_widget(title, center_block);
     }
 
-    fn draw_series_page(frame: &mut Frame, area: Rect) {
+    fn draw_series_page(model: &Model, frame: &mut Frame, area: Rect) {
         let question = Paragraph::new(Text::raw(
             "How many series are you editing?",
         )).centered();
         let num_input = Paragraph::new(Text::raw(
-            "0",
+            model.inputs.series_num.to_string()
         )).centered();
 
         let chunks = Layout::vertical([Constraint::Length(2), Constraint::Min(3)]).split(
