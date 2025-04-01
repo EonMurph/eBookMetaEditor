@@ -24,6 +24,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         }
         EventMessage::SetSeriesCounter(s) => {
+            // Add or subtract 1 from num series and then clamp to 0 and 127
             model.inputs.series_num = model.inputs.series_num.saturating_add(s);
             model.inputs.series_num = model.inputs.series_num.clamp(0, i8::MAX);
         }
@@ -31,6 +32,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
 }
 
 pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
+    // Wait up to 250ms for an event
     if event::poll(Duration::from_millis(250))? {
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Press {
@@ -49,6 +51,7 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
             Some(EventMessage::Quit)
         }
         KeyCode::Enter => Some(EventMessage::NextPage),
+        // Set page specific keybinds
         _ => match model.current_page {
             Page::SeriesData => match key.code {
                 KeyCode::Left => Some(EventMessage::SetSeriesCounter(-1)),

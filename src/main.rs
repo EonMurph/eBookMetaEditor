@@ -21,6 +21,7 @@ fn main() -> color_eyre::Result<()> {
 
         let current_msg = handle_event(&model)?;
 
+        // If handle_event returned a message then update
         if let Some(msg) = current_msg {
             update(&mut model, msg);
         }

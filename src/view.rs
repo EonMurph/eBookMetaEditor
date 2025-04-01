@@ -13,6 +13,8 @@ pub struct View;
 impl View {
     pub fn draw(model: &Model, frame: &mut Frame) {
         let bar_length = 2;
+        // Split the TUI into three rows
+        // (title bar, main content, and status bar)
         let chunks = Layout::vertical([
             Constraint::Max(bar_length),
             Constraint::Min(1),

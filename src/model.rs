@@ -10,6 +10,7 @@ pub enum Page {
 }
 
 
+// Struct to hold input field data
 pub struct Input {
     pub series_num: i8,
 }
