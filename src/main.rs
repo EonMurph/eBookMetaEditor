@@ -17,7 +17,7 @@ fn main() -> color_eyre::Result<()> {
 
     let mut model: Model = Model::new();
     while model.running {
-        terminal.draw(|f| View::draw(&mut model, f))?;
+        terminal.draw(|f| View::draw(&model, f))?;
 
         let current_msg = handle_event(&model)?;
 
