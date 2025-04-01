@@ -67,7 +67,7 @@ impl View {
         let title_block = Block::default()
             .borders(Borders::ALL);
         let title = Paragraph::new(Text::styled(
-            "Press <Enter> to start the program.",
+            "Press <Alt + Enter> to start the program.",
             Style::default().fg(Color::Green),
         ))
         .block(title_block)

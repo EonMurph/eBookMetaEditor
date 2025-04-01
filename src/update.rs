@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crossterm::event::{self, Event, KeyCode};
+use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
 use crate::model::{Model, Page};
 
@@ -47,10 +47,12 @@ pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
 fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
     match key.code {
         KeyCode::Char('q') | KeyCode::Esc => Some(EventMessage::Quit),
-        KeyCode::Char('c') if key.modifiers.contains(event::KeyModifiers::CONTROL) => {
+        KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             Some(EventMessage::Quit)
         }
-        KeyCode::Enter => Some(EventMessage::NextPage),
+        KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => {
+            Some(EventMessage::NextPage)
+        }
         // Set page specific keybinds
         _ => match model.current_page {
             Page::SeriesData => match key.code {
