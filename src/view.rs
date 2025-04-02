@@ -7,11 +7,12 @@ use ratatui::{
     text::Text,
     widgets::{Block, BorderType, Borders, Paragraph},
 };
+use tui_widget_list::{ListBuilder, ListView};
 
 pub struct View;
 
 impl View {
-    pub fn draw(model: &Model, frame: &mut Frame) {
+    pub fn draw(model: &mut Model, frame: &mut Frame) -> color_eyre::Result<()> {
         let bar_length = 2;
         // Split the TUI into three rows
         // (title bar, main content, and status bar)
@@ -28,9 +29,12 @@ impl View {
         match model.current_page {
             Page::Home => View::draw_home(frame, chunks[1]),
             Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
+            Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,
             Page::Quit => todo!(),
             _ => todo!(),
         };
+
+        Ok(())
     }
 
     fn draw_title_bar(frame: &mut Frame, area: Rect) {
@@ -64,8 +68,7 @@ impl View {
     fn draw_home(frame: &mut Frame, area: Rect) {
         let center_block = View::centered_rect(60, 20, area);
 
-        let title_block = Block::default()
-            .borders(Borders::ALL);
+        let title_block = Block::default().borders(Borders::ALL);
         let title = Paragraph::new(Text::styled(
             "Press <Alt + Enter> to start the program.",
             Style::default().fg(Color::Green),
@@ -77,18 +80,53 @@ impl View {
     }
 
     fn draw_series_page(model: &Model, frame: &mut Frame, area: Rect) {
-        let question = Paragraph::new(Text::raw(
-            "How many series are you editing?",
-        )).centered();
-        let num_input = Paragraph::new(Text::raw(
-            model.inputs.series_num.to_string()
-        )).centered();
+        let question = Paragraph::new(Text::raw("How many series are you editing?")).centered();
+        let num_input = Paragraph::new(Text::raw(model.inputs.series_num.to_string())).centered();
 
-        let chunks = Layout::vertical([Constraint::Length(2), Constraint::Min(3)]).split(
-            View::centered_rect(40, 50, area)
-        );
+        let chunks = Layout::vertical([Constraint::Length(2), Constraint::Min(3)])
+            .split(View::centered_rect(40, 50, area));
         frame.render_widget(question, chunks[0]);
         frame.render_widget(num_input, chunks[1]);
+    }
+
+    fn draw_file_selection(
+        model: &mut Model,
+        frame: &mut Frame,
+        area: Rect,
+    ) -> color_eyre::Result<()> {
+        let current_idx = model.inputs.current_series_num;
+        let file_list = &mut model.inputs.file_lists[current_idx];
+        let builder = ListBuilder::new(|context| {
+            let mut style = Style::default().fg(Color::default());
+            if context.is_selected {
+                style = style.bg(Color::Red);
+            }
+
+            let mut block = Block::new();
+            if file_list.selected.contains(&context.index) {
+                block = block
+                    .borders(Borders::LEFT)
+                    .border_type(BorderType::Thick)
+                    .style(Style::default().fg(Color::Red));
+            }
+
+            let file_name = &file_list.items[context.index];
+            let text: String;
+            if let Some(filename) = file_name.file_name() {
+                text = filename.to_string_lossy().to_string();
+            } else {
+                text = String::from("../");
+            }
+            let item = Paragraph::new(Text::styled(text, style)).block(block);
+
+            (item, 1)
+        });
+
+        let list = ListView::new(builder, file_list.items.len()).infinite_scrolling(true);
+        let state = &mut file_list.state;
+        frame.render_stateful_widget(list, area, state);
+
+        Ok(())
     }
 
     fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
