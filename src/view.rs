@@ -115,7 +115,7 @@ impl View {
             if let Some(filename) = file_name.file_name() {
                 text = filename.to_string_lossy().to_string();
             } else {
-                text = String::from("../");
+                text = "Unable to read file".to_string();
             }
             let item = Paragraph::new(Text::styled(text, style)).block(block);
 

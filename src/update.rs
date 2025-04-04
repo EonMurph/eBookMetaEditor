@@ -1,4 +1,8 @@
-use std::{fs::read_dir, path::PathBuf, time::Duration};
+use std::{
+    fs::{canonicalize, read_dir},
+    path::PathBuf,
+    time::Duration,
+};
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
@@ -15,6 +19,7 @@ pub enum EventMessage {
     NextFile,
     PreviousFile,
     SelectFile,
+    ChangeDirectory(PathBuf),
 }
 
 pub fn update(model: &mut Model, msg: EventMessage) {
@@ -27,12 +32,12 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 Page::SeriesData => {
                     model.set_num_series();
                     if model.inputs.file_lists.is_empty() {
-                        let mut files_list: Vec<PathBuf> = vec![PathBuf::from("./../")];
+                        let mut files_list: Vec<PathBuf> = Vec::new();
                         files_list.extend(
                             read_dir("./")
                                 .unwrap()
                                 .filter_map(|entry| entry.ok())
-                                .map(|entry| entry.path()),
+                                .map(|entry| canonicalize(entry.path()).unwrap()),
                         );
                         for _ in 0..model.inputs.series_num {
                             model
@@ -96,6 +101,16 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 }
             }
         }
+        EventMessage::ChangeDirectory(directory) => {
+            let files_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
+            files_list.current_directory = directory;
+            files_list.items = read_dir(&files_list.current_directory)
+                .unwrap()
+                .filter_map(|entry| entry.ok())
+                .map(|entry| entry.path())
+                .collect();
+            files_list.state.selected = Some(0);
+        }
     }
 }
 
@@ -135,6 +150,32 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                 KeyCode::Down => Some(EventMessage::NextFile),
                 KeyCode::Up => Some(EventMessage::PreviousFile),
                 KeyCode::Tab => Some(EventMessage::SelectFile),
+                KeyCode::Right | KeyCode::Left => match key.code {
+                    KeyCode::Right => {
+                        if let Some(new_directory_index) = model.inputs.file_lists
+                            [model.inputs.current_series_num]
+                            .state
+                            .selected
+                        {
+                            let new_directory = model.inputs.file_lists
+                                [model.inputs.current_series_num]
+                                .items[new_directory_index]
+                                .clone();
+                            Some(EventMessage::ChangeDirectory(new_directory))
+                        } else {
+                            None
+                        }
+                    }
+                    KeyCode::Left => {
+                        let current_directory = &model.inputs.file_lists
+                            [model.inputs.current_series_num]
+                            .current_directory;
+                        current_directory
+                            .parent()
+                            .map(|parent| EventMessage::ChangeDirectory(parent.into()))
+                    }
+                    _ => None,
+                },
                 _ => None,
             },
             _ => None,

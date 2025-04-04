@@ -1,4 +1,4 @@
-use std::{collections::HashSet, path::PathBuf};
+use std::{collections::HashSet, path::PathBuf, fs::canonicalize};
 
 use tui_widget_list::ListState;
 
@@ -30,7 +30,7 @@ impl FromIterator<PathBuf> for FileList {
             items: iter.into_iter().collect(),
             state: ListState::default(),
             selected: HashSet::default(),
-            current_directory: PathBuf::from("./"),
+            current_directory: canonicalize(PathBuf::from("./")).unwrap(),
         }
     }
 }
