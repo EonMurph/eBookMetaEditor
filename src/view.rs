@@ -26,7 +26,7 @@ impl View {
         View::draw_title_bar(frame, chunks[0]);
         View::draw_status_bar(frame, chunks[2]);
 
-        match model.current_page {
+        match Page::VALUES[model.current_page] {
             Page::Home => View::draw_home(frame, chunks[1]),
             Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
             Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,

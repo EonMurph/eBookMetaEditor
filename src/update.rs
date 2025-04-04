@@ -4,8 +4,12 @@ use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
 use crate::model::{FileList, Model, Page};
 
+pub(crate) enum Direction {
+    Left,
+    Right,
+}
 pub enum EventMessage {
-    NextPage,
+    ChangePage(Direction),
     Quit,
     SetSeriesCounter(i8),
     NextFile,
@@ -18,31 +22,56 @@ pub fn update(model: &mut Model, msg: EventMessage) {
 
     match msg {
         EventMessage::Quit => model.running = false,
-        EventMessage::NextPage => {
-            model.current_page = match model.current_page {
-                Page::Home => Page::SeriesData,
+        EventMessage::ChangePage(direction) => {
+            model.current_page = match Page::VALUES[model.current_page] {
                 Page::SeriesData => {
                     model.set_num_series();
-                    let mut files_list: Vec<PathBuf> = vec![PathBuf::from("./../")];
-                    files_list.extend(read_dir("./").unwrap().filter_map(|entry| entry.ok()).map(|entry| entry.path()));
-                    for _ in 0..model.inputs.series_num {
-                        model
-                            .inputs
-                            .file_lists
-                            .push(FileList::from_iter(files_list.clone().into_iter()));
+                    if model.inputs.file_lists.is_empty() {
+                        let mut files_list: Vec<PathBuf> = vec![PathBuf::from("./../")];
+                        files_list.extend(
+                            read_dir("./")
+                                .unwrap()
+                                .filter_map(|entry| entry.ok())
+                                .map(|entry| entry.path()),
+                        );
+                        for _ in 0..model.inputs.series_num {
+                            model
+                                .inputs
+                                .file_lists
+                                .push(FileList::from_iter(files_list.clone().into_iter()));
+                        }
                     }
-                    Page::FileSelection
-                }
-                Page::FileSelection => {
-                    model.inputs.current_series_num += 1;
-                    if model.inputs.current_series_num < model.inputs.series_num as usize {
-                        Page::FileSelection
-                    } else {
-                        model.inputs.current_series_num = 0;
-                        Page::Home
+                    match direction {
+                        Direction::Left => model.current_page.saturating_sub(1),
+                        Direction::Right => {
+                            model.current_page.saturating_add(1) % Page::VALUES.len()
+                        }
                     }
                 }
-                _ => Page::Home,
+                Page::FileSelection => match direction {
+                    Direction::Left => {
+                        if model.inputs.current_series_num == 0 {
+                            model.current_page.saturating_sub(1)
+                        } else {
+                            model.inputs.current_series_num -= 1;
+                            model.current_page
+                        }
+                    }
+                    Direction::Right => {
+                        model.inputs.current_series_num += 1;
+
+                        if model.inputs.current_series_num < model.inputs.series_num as usize {
+                            model.current_page
+                        } else {
+                            model.inputs.current_series_num = 0;
+                            0
+                        }
+                    }
+                },
+                _ => match direction {
+                    Direction::Left => model.current_page.saturating_sub(1),
+                    Direction::Right => model.current_page.saturating_add(1) % Page::VALUES.len(),
+                },
             }
         }
         EventMessage::SetSeriesCounter(s) => {
@@ -89,9 +118,14 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             Some(EventMessage::Quit)
         }
-        KeyCode::Enter if key.modifiers.contains(KeyModifiers::ALT) => Some(EventMessage::NextPage),
+        KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(EventMessage::ChangePage(Direction::Right))
+        }
+        KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
+            Some(EventMessage::ChangePage(Direction::Left))
+        }
         // Set page specific keybinds
-        _ => match model.current_page {
+        _ => match Page::VALUES[model.current_page] {
             Page::SeriesData => match key.code {
                 KeyCode::Left => Some(EventMessage::SetSeriesCounter(-1)),
                 KeyCode::Right => Some(EventMessage::SetSeriesCounter(1)),

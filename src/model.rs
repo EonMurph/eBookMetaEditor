@@ -12,6 +12,10 @@ pub enum Page {
     Loading,
 }
 
+impl Page {
+    pub const VALUES: [Self; 3] = [Self::Home, Self::SeriesData, Self::FileSelection];
+}
+
 // Struct to hold the data for the list of files
 pub struct FileList {
     pub items: Vec<PathBuf>,
@@ -56,7 +60,7 @@ pub struct Model {
     series_name: Option<String>,
     book_name: Option<String>,
     format: String,
-    pub current_page: Page,
+    pub current_page: usize,
     pub inputs: Input,
 }
 
@@ -70,7 +74,7 @@ impl Model {
             series_name: None,
             book_name: None,
             format: "{book_name}".into(),
-            current_page: Page::Home,
+            current_page: 0,
             inputs: Input::new(),
         }
     }
