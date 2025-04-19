@@ -94,10 +94,11 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             let file_list = &mut model.inputs.file_lists[current_idx];
             let state = &file_list.state;
             if let Some(selected_idx) = state.selected {
-                if file_list.selected.contains(&selected_idx) {
-                    file_list.selected.remove(&selected_idx);
+                let file_name = &file_list.items[selected_idx];
+                if file_list.selected.contains(file_name) {
+                    file_list.selected.remove(file_name);
                 } else {
-                    file_list.selected.insert(selected_idx);
+                    file_list.selected.insert(file_name.to_owned());
                 }
             }
         }

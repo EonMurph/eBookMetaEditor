@@ -1,4 +1,4 @@
-use std::{collections::HashSet, path::PathBuf, fs::canonicalize};
+use std::{collections::HashSet, fs::canonicalize, path::PathBuf};
 
 use tui_widget_list::ListState;
 
@@ -20,7 +20,7 @@ impl Page {
 pub struct FileList {
     pub items: Vec<PathBuf>,
     pub state: ListState,
-    pub selected: HashSet<usize>,
+    pub selected: HashSet<PathBuf>,
     pub current_directory: PathBuf,
 }
 

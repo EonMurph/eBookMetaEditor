@@ -102,20 +102,20 @@ impl View {
                 style = style.bg(Color::Red);
             }
 
-            let mut block = Block::new();
-            if file_list.selected.contains(&context.index) {
-                block = block
-                    .borders(Borders::LEFT)
-                    .border_type(BorderType::Thick)
-                    .style(Style::default().fg(Color::Red));
-            }
-
             let file_name = &file_list.items[context.index];
             let text: String;
             if let Some(filename) = file_name.file_name() {
                 text = filename.to_string_lossy().to_string();
             } else {
                 text = "Unable to read file".to_string();
+            }
+            
+            let mut block = Block::new();
+            if file_list.selected.contains(file_name) {
+                block = block
+                    .borders(Borders::LEFT)
+                    .border_type(BorderType::Thick)
+                    .style(Style::default().fg(Color::Red));
             }
             let item = Paragraph::new(Text::styled(text, style)).block(block);
 
