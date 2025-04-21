@@ -97,19 +97,26 @@ impl View {
         let current_idx = model.inputs.current_series_num;
         let file_list = &mut model.inputs.file_lists[current_idx];
         let builder = ListBuilder::new(|context| {
+            let file_name = &file_list.items[context.index];
+
             let mut style = Style::default().fg(Color::default());
             if context.is_selected {
-                style = style.bg(Color::Red);
+                if file_name.is_dir() {
+                    style = style.bg(Color::Green);
+                } else {
+                    style = style.bg(Color::Red);
+                }
+            } else if file_name.is_dir() {
+                style = style.fg(Color::Green);
             }
 
-            let file_name = &file_list.items[context.index];
             let text: String;
             if let Some(filename) = file_name.file_name() {
                 text = filename.to_string_lossy().to_string();
             } else {
                 text = "Unable to read file".to_string();
             }
-            
+
             let mut block = Block::new();
             if file_list.selected.contains(file_name) {
                 block = block
