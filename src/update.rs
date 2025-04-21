@@ -103,6 +103,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         }
         EventMessage::ChangeDirectory(directory) => {
+            if directory.is_dir() {
             let files_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
             files_list.current_directory = directory;
             files_list.items = read_dir(&files_list.current_directory)
@@ -111,6 +112,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 .map(|entry| entry.path())
                 .collect();
             files_list.state.selected = Some(0);
+            }
         }
     }
 }
