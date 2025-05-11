@@ -70,7 +70,7 @@ impl View {
 
         let title_block = Block::default().borders(Borders::ALL);
         let title = Paragraph::new(Text::styled(
-            "Press <Alt + Enter> to start the program.",
+            "Press <Ctrl + Left/Right Arrow> to navigate pages.",
             Style::default().fg(Color::Green),
         ))
         .block(title_block)
