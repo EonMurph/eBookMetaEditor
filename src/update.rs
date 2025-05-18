@@ -31,7 +31,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             model.current_page = match Page::VALUES[model.current_page] {
                 Page::SeriesData => {
                     model.set_num_series();
-                    if model.inputs.file_lists.is_empty() {
+                    if model.inputs.series_num > model.inputs.file_lists.len() as i8 {
                         let mut files_list: Vec<PathBuf> = Vec::new();
                         files_list.extend(
                             read_dir("./")
@@ -39,7 +39,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                 .filter_map(|entry| entry.ok())
                                 .map(|entry| canonicalize(entry.path()).unwrap()),
                         );
-                        for _ in 0..model.inputs.series_num {
+                        for _ in 0..(model.inputs.series_num - model.inputs.file_lists.len() as i8) {
                             model
                                 .inputs
                                 .file_lists
@@ -104,14 +104,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         }
         EventMessage::ChangeDirectory(directory) => {
             if directory.is_dir() {
-            let files_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
-            files_list.current_directory = directory;
-            files_list.items = read_dir(&files_list.current_directory)
-                .unwrap()
-                .filter_map(|entry| entry.ok())
-                .map(|entry| entry.path())
-                .collect();
-            files_list.state.selected = Some(0);
+                let files_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
+                files_list.current_directory = directory;
+                files_list.items = read_dir(&files_list.current_directory)
+                    .unwrap()
+                    .filter_map(|entry| entry.ok())
+                    .map(|entry| entry.path())
+                    .collect();
+                files_list.state.selected = Some(0);
             }
         }
     }
