@@ -54,12 +54,6 @@ impl Input {
 
 pub struct Model {
     pub running: bool,
-    current_file_name: Option<PathBuf>,
-    files_list: Option<Vec<FileList>>,
-    num_series: i8,
-    series_name: Option<String>,
-    book_name: Option<String>,
-    format: String,
     pub current_page: usize,
     pub inputs: Input,
 }
@@ -68,18 +62,8 @@ impl Model {
     pub fn new() -> Self {
         Model {
             running: true,
-            current_file_name: None,
-            files_list: None,
-            num_series: 0,
-            series_name: None,
-            book_name: None,
-            format: "{book_name}".into(),
             current_page: 0,
             inputs: Input::new(),
         }
-    }
-
-    pub fn set_num_series(&mut self) {
-        self.num_series = self.inputs.series_num;
     }
 }
