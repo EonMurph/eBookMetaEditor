@@ -30,7 +30,6 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         EventMessage::ChangePage(direction) => {
             model.current_page = match Page::VALUES[model.current_page] {
                 Page::SeriesData => {
-                    model.set_num_series();
                     if model.inputs.series_num > model.inputs.file_lists.len() as i8 {
                         let mut files_list: Vec<PathBuf> = Vec::new();
                         files_list.extend(
