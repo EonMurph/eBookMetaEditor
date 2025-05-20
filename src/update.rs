@@ -8,20 +8,30 @@ use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
 use crate::model::{FileList, Model, Page};
 
+/// Enum for holding direction for page changing event
 pub(crate) enum Direction {
     Left,
     Right,
 }
+/// Enum for holding possible app events
 pub enum EventMessage {
+    /// Change the current page
     ChangePage(Direction),
+    /// Quit the app
     Quit,
+    /// Change the number of series to edit
     SetSeriesCounter(i8),
+    /// Go to the next file in selection page
     NextFile,
+    /// Go to the previous file in selection page
     PreviousFile,
+    /// Select file in selection page
     SelectFile,
+    /// Change current directory in selection page
     ChangeDirectory(PathBuf),
 }
 
+/// Function for processing events
 pub fn update(model: &mut Model, msg: EventMessage) {
     let current_idx = model.inputs.current_series_num;
 
@@ -116,6 +126,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
     }
 }
 
+/// Function for polling events and keybinds and returning related event
 pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
     // Wait up to 250ms for an event
     if event::poll(Duration::from_millis(250))? {
@@ -129,6 +140,7 @@ pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
     Ok(None)
 }
 
+/// Function for processing key presses and returning related event
 fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
     match key.code {
         KeyCode::Char('q') | KeyCode::Esc => Some(EventMessage::Quit),

@@ -9,9 +9,11 @@ use ratatui::{
 };
 use tui_widget_list::{ListBuilder, ListView};
 
+/// Unit struct for holding the drawing methods of the app
 pub struct View;
 
 impl View {
+    /// Main draw method from which all other methods are called
     pub fn draw(model: &mut Model, frame: &mut Frame) -> color_eyre::Result<()> {
         let bar_length = 2;
         // Split the TUI into three rows
@@ -37,6 +39,7 @@ impl View {
         Ok(())
     }
 
+    /// Draw the app's title bar
     fn draw_title_bar(frame: &mut Frame, area: Rect) {
         let title_block = Block::default()
             .borders(Borders::BOTTOM)
@@ -57,6 +60,7 @@ impl View {
         frame.render_widget(title, View::centered_rect(50, 100, area));
     }
 
+    /// Draw the app's status bar showing the information related to the current page
     fn draw_status_bar(frame: &mut Frame, area: Rect) {
         let status_block = Block::default()
             .borders(Borders::TOP)
@@ -65,6 +69,7 @@ impl View {
         frame.render_widget(status_block, area);
     }
 
+    /// Draw the app's home page.
     fn draw_home(frame: &mut Frame, area: Rect) {
         let center_block = View::centered_rect(60, 20, area);
 
@@ -79,6 +84,7 @@ impl View {
         frame.render_widget(title, center_block);
     }
 
+    /// Draw the app's number of series selection page
     fn draw_series_page(model: &Model, frame: &mut Frame, area: Rect) {
         let question = Paragraph::new(Text::raw("How many series are you editing?")).centered();
         let num_input = Paragraph::new(Text::raw(model.inputs.series_num.to_string())).centered();
@@ -89,6 +95,7 @@ impl View {
         frame.render_widget(num_input, chunks[1]);
     }
 
+    /// Draw the app's file selection page
     fn draw_file_selection(
         model: &mut Model,
         frame: &mut Frame,
@@ -136,6 +143,7 @@ impl View {
         Ok(())
     }
 
+    /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)
     fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         // Cut the given rectangle into three vertical pieces
         let popup_layout = Layout::vertical([
