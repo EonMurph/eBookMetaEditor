@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::model::{Model, Page};
 
@@ -159,24 +159,25 @@ impl View {
     ) -> color_eyre::Result<()> {
         let current_idx = model.inputs.current_series_num;
         let file_list = &model.inputs.file_lists[current_idx];
-        let mut files: HashMap<Line, Vec<Line>> = HashMap::new();
+        let mut files: BTreeMap<String, Vec<Line>> = BTreeMap::new();
         for path in &file_list.selected {
-            let dir = Line::from(
-                path.parent()
-                    .unwrap()
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy(),
-            );
+            let dir = path
+                .parent()
+                .unwrap()
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
             let file = Line::from(path.file_name().unwrap().to_string_lossy());
 
             files.entry(dir).or_default().push(file);
         }
 
-        let directories: Vec<&Line> = files.keys().collect();
+        let directories: Vec<&String> = files.keys().collect();
         let directory_builder = ListBuilder::new(|context| {
             let directory = directories[context.index];
-            let mut directory_block_lines: Vec<Line> = Vec::from([directory.clone().style(Style::default().fg(Color::Green))]);
+            let mut directory_block_lines: Vec<Line> =
+                Vec::from([Line::from(directory.clone()).style(Style::default().fg(Color::Green))]);
             for file in &files[directory] {
                 directory_block_lines.push(file.clone())
             }
