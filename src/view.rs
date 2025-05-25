@@ -1,13 +1,15 @@
+use std::collections::HashMap;
+
 use crate::model::{Model, Page};
 
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
-    text::Text,
+    text::{Line, Text},
     widgets::{Block, BorderType, Borders, Paragraph},
 };
-use tui_widget_list::{ListBuilder, ListView};
+use tui_widget_list::{ListBuilder, ListState, ListView};
 
 /// Unit struct for holding the drawing methods of the app
 pub struct View;
@@ -138,7 +140,54 @@ impl View {
 
         let list = ListView::new(builder, file_list.items.len()).infinite_scrolling(true);
         let state = &mut file_list.state;
-        frame.render_stateful_widget(list, area, state);
+
+        let file_chunks =
+            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(area);
+
+        frame.render_stateful_widget(list, file_chunks[0], state);
+        View::draw_selected_files(model, frame, file_chunks[1])?;
+
+        Ok(())
+    }
+
+    /// Draw the sidebar showing selected files
+    fn draw_selected_files(
+        model: &mut Model,
+        frame: &mut Frame,
+        area: Rect,
+    ) -> color_eyre::Result<()> {
+        let current_idx = model.inputs.current_series_num;
+        let file_list = &model.inputs.file_lists[current_idx];
+        let mut files: HashMap<Line, Vec<Line>> = HashMap::new();
+        for path in &file_list.selected {
+            let dir = Line::from(
+                path.parent()
+                    .unwrap()
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy(),
+            );
+            let file = Line::from(path.file_name().unwrap().to_string_lossy());
+
+            files.entry(dir).or_default().push(file);
+        }
+
+        let directories: Vec<&Line> = files.keys().collect();
+        let directory_builder = ListBuilder::new(|context| {
+            let directory = directories[context.index];
+            let mut directory_block_lines: Vec<Line> = Vec::from([directory.clone().style(Style::default().fg(Color::Green))]);
+            for file in &files[directory] {
+                directory_block_lines.push(file.clone())
+            }
+            let directory_block = Paragraph::new(Text::from(directory_block_lines));
+
+            (directory_block, files[directory].len() as u16 + 1)
+        });
+
+        let list = ListView::new(directory_builder, files.len());
+
+        frame.render_stateful_widget(list, area, &mut ListState::default());
 
         Ok(())
     }
