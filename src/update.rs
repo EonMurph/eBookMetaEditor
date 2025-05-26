@@ -48,7 +48,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                 .filter_map(|entry| entry.ok())
                                 .map(|entry| canonicalize(entry.path()).unwrap()),
                         );
-                        for _ in 0..(model.inputs.series_num - model.inputs.file_lists.len() as i8) {
+                        for _ in 0..(model.inputs.series_num - model.inputs.file_lists.len() as i8)
+                        {
                             model
                                 .inputs
                                 .file_lists
@@ -104,10 +105,12 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             let state = &file_list.state;
             if let Some(selected_idx) = state.selected {
                 let file_name = &file_list.items[selected_idx];
-                if file_list.selected.contains(file_name) {
-                    file_list.selected.remove(file_name);
-                } else {
-                    file_list.selected.insert(file_name.to_owned());
+                if !(file_name.is_dir()) {
+                    if file_list.selected.contains(file_name) {
+                        file_list.selected.remove(file_name);
+                    } else {
+                        file_list.selected.insert(file_name.to_owned());
+                    }
                 }
             }
         }
