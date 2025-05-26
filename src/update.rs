@@ -41,13 +41,27 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             model.current_page = match Page::VALUES[model.current_page] {
                 Page::SeriesData => {
                     if model.inputs.series_num > model.inputs.file_lists.len() as i8 {
+                        let directory_contents: Vec<PathBuf> = read_dir("./")
+                            .unwrap()
+                            .filter_map(|entry| entry.ok())
+                            .map(|entry| canonicalize(entry.path()).unwrap())
+                            .collect();
                         let mut files_list: Vec<PathBuf> = Vec::new();
-                        files_list.extend(
-                            read_dir("./")
-                                .unwrap()
-                                .filter_map(|entry| entry.ok())
-                                .map(|entry| canonicalize(entry.path()).unwrap()),
-                        );
+                        {
+                            let mut directories: Vec<PathBuf> = Vec::new();
+                            let mut files: Vec<PathBuf> = Vec::new();
+                            for entry in directory_contents {
+                                if entry.is_dir() {
+                                    directories.push(entry);
+                                } else if entry.is_file() {
+                                    files.push(entry);
+                                }
+                            }
+                            directories.sort();
+                            files.sort();
+                            files_list.append(&mut directories);
+                            files_list.append(&mut files);
+                        }
                         for _ in 0..(model.inputs.series_num - model.inputs.file_lists.len() as i8)
                         {
                             model
@@ -105,7 +119,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             let state = &file_list.state;
             if let Some(selected_idx) = state.selected {
                 let file_name = &file_list.items[selected_idx];
-                if !(file_name.is_dir()) {
+                if file_name.is_file() {
                     if file_list.selected.contains(file_name) {
                         file_list.selected.remove(file_name);
                     } else {
