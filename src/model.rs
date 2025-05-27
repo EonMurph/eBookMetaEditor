@@ -1,4 +1,8 @@
-use std::{collections::HashSet, fs::canonicalize, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::canonicalize,
+    path::PathBuf,
+};
 
 use tui_widget_list::ListState;
 
@@ -22,7 +26,12 @@ pub enum Page {
 
 impl Page {
     /// List of pages used for cycling through the app pages
-    pub const VALUES: [Self; 4] = [Self::Home, Self::SeriesData, Self::FileSelection, Self::BookData];
+    pub const VALUES: [Self; 4] = [
+        Self::Home,
+        Self::SeriesData,
+        Self::FileSelection,
+        Self::BookData,
+    ];
 }
 
 /// Struct to hold the data for the list of files
@@ -49,6 +58,13 @@ impl FromIterator<PathBuf> for FileList {
     }
 }
 
+/// Struct to hold possible input fields for editing
+#[derive(Hash, Eq, PartialEq)]
+pub enum InputField {
+    Author,
+    Series,
+    Format,
+}
 /// Struct to hold input field data
 pub struct Input {
     /// Integer representing the number of series being edited
@@ -57,6 +73,10 @@ pub struct Input {
     pub current_series_num: usize,
     /// Vector holding a FileList struct for each series being edited
     pub file_lists: Vec<FileList>,
+    /// InputField representing the current field being edited
+    pub currently_editing: InputField,
+    /// HashMap with key of InputField and value of the String that field is holding
+    pub field_values: HashMap<InputField, String>,
 }
 
 impl Input {
@@ -66,6 +86,12 @@ impl Input {
             series_num: 1,
             current_series_num: 0,
             file_lists: Vec::new(),
+            currently_editing: InputField::Author,
+            field_values: HashMap::from([
+                (InputField::Author, String::from("Surname, Forename")),
+                (InputField::Series, String::from("Placeholder title")),
+                (InputField::Format, String::from("{series_name} ({position}) - {book_title}")),
+            ]),
         }
     }
 }

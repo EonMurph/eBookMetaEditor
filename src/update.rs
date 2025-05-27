@@ -6,7 +6,7 @@ use std::{
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
-use crate::model::{FileList, Model, Page};
+use crate::model::{FileList, InputField, Model, Page};
 
 /// Enum for holding direction for page changing event
 pub(crate) enum Direction {
@@ -29,6 +29,7 @@ pub enum EventMessage {
     SelectFile,
     /// Change current directory in selection page
     ChangeDirectory(PathBuf),
+    ChangeField(Direction),
 }
 
 /// Function for processing events
@@ -140,6 +141,16 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 files_list.state.selected = Some(0);
             }
         }
+        EventMessage::ChangeField(direction) => match direction {
+            Direction::Left => {}
+            Direction::Right => {
+                model.inputs.currently_editing = match model.inputs.currently_editing {
+                    InputField::Author => InputField::Series,
+                    InputField::Series => InputField::Format,
+                    InputField::Format => InputField::Author,
+                }
+            }
+        },
     }
 }
 
@@ -207,6 +218,10 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                     }
                     _ => None,
                 },
+                _ => None,
+            },
+            Page::BookData => match key.code {
+                KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Right)),
                 _ => None,
             },
             _ => None,

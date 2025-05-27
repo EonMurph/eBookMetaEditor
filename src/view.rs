@@ -1,11 +1,12 @@
 use std::collections::{BTreeMap, HashMap};
 
-use crate::model::{Model, Page};
+use crate::model::{Input, InputField, Model, Page};
 
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
+    symbols::border,
     text::{Line, Text},
     widgets::{Block, BorderType, Borders, Paragraph},
 };
@@ -211,14 +212,27 @@ impl View {
             View::centered_rect(70, 80, top_chunks[1]),
             View::centered_rect(50, 75, chunks[1]),
         ];
-        frame.render_widget(Block::bordered().title("Author Name"), input_chunks[0]);
-        frame.render_widget(Block::bordered().title("Series Name"), input_chunks[1]);
-        frame.render_widget(Block::bordered().title("Format String"), input_chunks[2]);
+        let style = |field: InputField| {
+            if model.inputs.currently_editing == field {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default()
+            }
+        };
+        frame.render_widget(Block::bordered().border_style(style(InputField::Author)).title("Author Name"), input_chunks[0]);
+        frame.render_widget(Block::bordered().border_style(style(InputField::Series)).title("Series Name"), input_chunks[1]);
+        frame.render_widget(Block::bordered().border_style(style(InputField::Format)).title("Format String"), input_chunks[2]);
 
         let inputs: Vec<Paragraph> = Vec::from([
-            Paragraph::new(Line::from("Surname, Forename")),
-            Paragraph::new(Line::from("Placeholder title")),
-            Paragraph::new(Line::from("{series_name} ({position}) - {book_title}")),
+            Paragraph::new(Line::from(
+                model.inputs.field_values[&InputField::Author].as_str(),
+            )),
+            Paragraph::new(Line::from(
+                model.inputs.field_values[&InputField::Series].as_str(),
+            )),
+            Paragraph::new(Line::from(
+                model.inputs.field_values[&InputField::Format].as_str(),
+            )),
         ]);
 
         for i in 0..inputs.len() {
