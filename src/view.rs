@@ -34,6 +34,7 @@ impl View {
             Page::Home => View::draw_home(frame, chunks[1]),
             Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
             Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,
+            Page::BookData => View::draw_book_data_input(model, frame, chunks[1]),
             Page::Quit => todo!(),
             _ => todo!(),
         };
@@ -191,6 +192,38 @@ impl View {
         frame.render_stateful_widget(list, area, &mut ListState::default());
 
         Ok(())
+    }
+
+    /// Draw the page for inputting data for each series
+    fn draw_book_data_input(model: &mut Model, frame: &mut Frame, area: Rect) {
+        let chunks = Layout::vertical([
+            Constraint::Ratio(1, 6),
+            Constraint::Ratio(1, 6),
+            Constraint::Ratio(2, 3),
+        ])
+        .split(area);
+        let top_chunks =
+            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(chunks[0]);
+
+        let input_chunks: [Rect; 3] = [
+            View::centered_rect(70, 80, top_chunks[0]),
+            View::centered_rect(70, 80, top_chunks[1]),
+            View::centered_rect(50, 75, chunks[1]),
+        ];
+        frame.render_widget(Block::bordered().title("Author Name"), input_chunks[0]);
+        frame.render_widget(Block::bordered().title("Series Name"), input_chunks[1]);
+        frame.render_widget(Block::bordered().title("Format String"), input_chunks[2]);
+
+        let inputs: Vec<Paragraph> = Vec::from([
+            Paragraph::new(Line::from("Surname, Forename")),
+            Paragraph::new(Line::from("Placeholder title")),
+            Paragraph::new(Line::from("{series_name} ({position}) - {book_title}")),
+        ]);
+
+        for i in 0..inputs.len() {
+            frame.render_widget(&inputs[i], View::centered_rect(85, 50, input_chunks[i]));
+        }
     }
 
     /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)

@@ -93,7 +93,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                             model.current_page
                         } else {
                             model.inputs.current_series_num = 0;
-                            0
+                            model.current_page.saturating_add(1) % Page::VALUES.len()
                         }
                     }
                 },

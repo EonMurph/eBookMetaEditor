@@ -22,7 +22,7 @@ pub enum Page {
 
 impl Page {
     /// List of pages used for cycling through the app pages
-    pub const VALUES: [Self; 3] = [Self::Home, Self::SeriesData, Self::FileSelection];
+    pub const VALUES: [Self; 4] = [Self::Home, Self::SeriesData, Self::FileSelection, Self::BookData];
 }
 
 /// Struct to hold the data for the list of files
@@ -85,7 +85,7 @@ impl Model {
     pub fn new() -> Self {
         Model {
             running: true,
-            current_page: 0,
+            current_page: 3,
             inputs: Input::new(),
         }
     }
