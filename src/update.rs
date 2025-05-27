@@ -10,8 +10,8 @@ use crate::model::{FileList, InputField, Model, Page};
 
 /// Enum for holding direction for page changing event
 pub(crate) enum Direction {
-    Left,
-    Right,
+    Previous,
+    Next,
 }
 /// Enum for holding possible app events
 pub enum EventMessage {
@@ -72,14 +72,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                         }
                     }
                     match direction {
-                        Direction::Left => model.current_page.saturating_sub(1),
-                        Direction::Right => {
+                        Direction::Previous => model.current_page.saturating_sub(1),
+                        Direction::Next => {
                             model.current_page.saturating_add(1) % Page::VALUES.len()
                         }
                     }
                 }
                 Page::FileSelection => match direction {
-                    Direction::Left => {
+                    Direction::Previous => {
                         if model.inputs.current_series_num == 0 {
                             model.current_page.saturating_sub(1)
                         } else {
@@ -87,7 +87,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                             model.current_page
                         }
                     }
-                    Direction::Right => {
+                    Direction::Next => {
                         model.inputs.current_series_num += 1;
 
                         if model.inputs.current_series_num < model.inputs.series_num as usize {
@@ -99,8 +99,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                     }
                 },
                 _ => match direction {
-                    Direction::Left => model.current_page.saturating_sub(1),
-                    Direction::Right => model.current_page.saturating_add(1) % Page::VALUES.len(),
+                    Direction::Previous => model.current_page.saturating_sub(1),
+                    Direction::Next => model.current_page.saturating_add(1) % Page::VALUES.len(),
                 },
             }
         }
@@ -142,8 +142,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         }
         EventMessage::ChangeField(direction) => match direction {
-            Direction::Left => {}
-            Direction::Right => {
+            Direction::Previous => {}
+            Direction::Next => {
                 model.inputs.currently_editing = match model.inputs.currently_editing {
                     InputField::Author => InputField::Series,
                     InputField::Series => InputField::Format,
@@ -176,10 +176,10 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
             Some(EventMessage::Quit)
         }
         KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
-            Some(EventMessage::ChangePage(Direction::Right))
+            Some(EventMessage::ChangePage(Direction::Next))
         }
         KeyCode::Left if key.modifiers.contains(KeyModifiers::CONTROL) => {
-            Some(EventMessage::ChangePage(Direction::Left))
+            Some(EventMessage::ChangePage(Direction::Previous))
         }
         // Set page specific keybinds
         _ => match Page::VALUES[model.current_page] {
@@ -221,7 +221,7 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                 _ => None,
             },
             Page::BookData => match key.code {
-                KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Right)),
+                KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Next)),
                 _ => None,
             },
             _ => None,
