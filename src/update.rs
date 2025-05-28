@@ -29,8 +29,11 @@ pub enum EventMessage {
     SelectFile,
     /// Change current directory in selection page
     ChangeDirectory(PathBuf),
+    /// Change the input field being worked on
     ChangeField(Direction),
+    /// Input text into the input field
     InputText(char),
+    /// Remove text from the input field
     RemoveText,
 }
 
