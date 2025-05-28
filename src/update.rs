@@ -30,6 +30,8 @@ pub enum EventMessage {
     /// Change current directory in selection page
     ChangeDirectory(PathBuf),
     ChangeField(Direction),
+    InputText(char),
+    RemoveText,
 }
 
 /// Function for processing events
@@ -151,6 +153,24 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 }
             }
         },
+        EventMessage::InputText(char) => {
+            if let Some(value) = model
+                .inputs
+                .field_values
+                .get_mut(&model.inputs.currently_editing)
+            {
+                value.push(char);
+            }
+        }
+        EventMessage::RemoveText => {
+            if let Some(value) = model
+                .inputs
+                .field_values
+                .get_mut(&model.inputs.currently_editing)
+            {
+                value.pop();
+            }
+        }
     }
 }
 
@@ -222,6 +242,8 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
             },
             Page::BookData => match key.code {
                 KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Next)),
+                KeyCode::Backspace => Some(EventMessage::RemoveText),
+                KeyCode::Char(value) => Some(EventMessage::InputText(value)),
                 _ => None,
             },
             _ => None,
