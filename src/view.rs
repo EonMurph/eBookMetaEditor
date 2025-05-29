@@ -218,9 +218,24 @@ impl View {
                 Style::default()
             }
         };
-        frame.render_widget(Block::bordered().border_style(style(InputField::Author)).title("Author Name"), input_chunks[0]);
-        frame.render_widget(Block::bordered().border_style(style(InputField::Series)).title("Series Name"), input_chunks[1]);
-        frame.render_widget(Block::bordered().border_style(style(InputField::Format)).title("Format String"), input_chunks[2]);
+        frame.render_widget(
+            Block::bordered()
+                .border_style(style(InputField::Author))
+                .title("Author Name"),
+            input_chunks[0],
+        );
+        frame.render_widget(
+            Block::bordered()
+                .border_style(style(InputField::Series))
+                .title("Series Name"),
+            input_chunks[1],
+        );
+        frame.render_widget(
+            Block::bordered()
+                .border_style(style(InputField::Format))
+                .title("Format String"),
+            input_chunks[2],
+        );
 
         let inputs: Vec<Paragraph> = Vec::from([
             Paragraph::new(Line::from(
