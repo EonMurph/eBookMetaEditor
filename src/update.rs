@@ -102,10 +102,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                         }
                     }
                     Direction::Next => {
-                        if model.inputs.file_lists[model.inputs.current_series_num]
-                            .selected
-                            .len()
-                            > 0
+                        if !model.inputs.file_lists[model.inputs.current_series_num]
+                            .selected.is_empty()
                         {
                             model.current_page.saturating_add(1)
                         } else {
