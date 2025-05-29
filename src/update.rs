@@ -92,7 +92,17 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                             model.current_page.saturating_add(1)
                         }
                     }
-                    Direction::Next => model.current_page.saturating_add(1),
+                    Direction::Next => {
+                        if model.inputs.file_lists[model.inputs.current_series_num]
+                            .selected
+                            .len()
+                            > 0
+                        {
+                            model.current_page.saturating_add(1)
+                        } else {
+                            model.current_page
+                        }
+                    }
                 },
                 Page::BookData => match direction {
                     Direction::Previous => model.current_page.saturating_sub(1),
