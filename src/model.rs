@@ -112,8 +112,8 @@ impl Model {
         }
     }
 
-    pub fn get_current_file_list(&self, current_directory: PathBuf) -> Vec<PathBuf> {
-        let directory_contents: Vec<PathBuf> = read_dir(current_directory)
+    pub fn get_current_file_list(&self, directory: PathBuf) -> Vec<PathBuf> {
+        let directory_contents: Vec<PathBuf> = read_dir(directory)
             .unwrap()
             .filter_map(|entry| entry.ok())
             .map(|entry| canonicalize(entry.path()).unwrap())
