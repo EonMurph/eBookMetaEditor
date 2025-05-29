@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, time::Duration};
+use std::{collections::HashMap, fs::canonicalize, path::PathBuf, time::Duration};
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
@@ -135,7 +135,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 let items = model.get_current_file_list(directory.clone());
                 let file_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
                 file_list.items = items;
-                file_list.current_directory = directory;
+                file_list.current_directory = canonicalize(directory).unwrap();
                 file_list.state.selected = Some(0);
             }
         }

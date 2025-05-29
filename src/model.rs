@@ -53,7 +53,7 @@ impl FromIterator<PathBuf> for FileList {
             items: iter.into_iter().collect(),
             state: ListState::default(),
             selected: HashSet::default(),
-            current_directory: PathBuf::from("./"),
+            current_directory: canonicalize(PathBuf::from("./")).unwrap(),
         }
     }
 }
