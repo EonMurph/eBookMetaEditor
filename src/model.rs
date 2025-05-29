@@ -126,7 +126,11 @@ impl Model {
                 if entry.is_dir() {
                     directories.push(entry);
                 } else if entry.is_file() {
-                    files.push(entry);
+                    if let Some(extension) = entry.extension() {
+                        if extension == "epub" {
+                            files.push(entry);
+                        }
+                    }
                 }
             }
             directories.sort();
