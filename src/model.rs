@@ -123,12 +123,23 @@ impl Model {
             let mut directories: Vec<PathBuf> = Vec::new();
             let mut files: Vec<PathBuf> = Vec::new();
             for entry in directory_contents {
-                if entry.is_dir() {
-                    directories.push(entry);
-                } else if entry.is_file() {
-                    if let Some(extension) = entry.extension() {
-                        if extension == "epub" {
-                            files.push(entry);
+                if entry
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .chars()
+                    .nth(0)
+                    .unwrap()
+                    != '.'
+                {
+                    if entry.is_dir() {
+                        directories.push(entry);
+                    } else if entry.is_file() {
+                        if let Some(extension) = entry.extension() {
+                            if extension == "epub" {
+                                files.push(entry);
+                            }
                         }
                     }
                 }
