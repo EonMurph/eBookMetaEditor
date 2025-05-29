@@ -89,16 +89,18 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                             model.current_page.saturating_sub(1)
                         } else {
                             model.inputs.current_series_num -= 1;
-                            model.current_page
+                            model.current_page.saturating_add(1)
                         }
                     }
+                    Direction::Next => model.current_page.saturating_add(1),
+                },
+                Page::BookData => match direction {
+                    Direction::Previous => model.current_page.saturating_sub(1),
                     Direction::Next => {
-                        model.inputs.current_series_num += 1;
-
-                        if model.inputs.current_series_num < model.inputs.series_num as usize {
-                            model.current_page
+                        if model.inputs.current_series_num < model.inputs.series_num as usize - 1 {
+                            model.inputs.current_series_num += 1;
+                            model.current_page.saturating_sub(1)
                         } else {
-                            model.inputs.current_series_num = 0;
                             model.current_page.saturating_add(1) % Page::VALUES.len()
                         }
                     }
