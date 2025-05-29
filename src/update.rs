@@ -1,9 +1,4 @@
-use std::{
-    collections::HashMap,
-    fs::{canonicalize, read_dir},
-    path::PathBuf,
-    time::Duration,
-};
+use std::{collections::HashMap, path::PathBuf, time::Duration};
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
 
@@ -48,33 +43,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             model.current_page = match Page::VALUES[model.current_page] {
                 Page::SeriesData => {
                     if model.inputs.series_num > model.inputs.file_lists.len() as i8 {
-                        let directory_contents: Vec<PathBuf> = read_dir("./")
-                            .unwrap()
-                            .filter_map(|entry| entry.ok())
-                            .map(|entry| canonicalize(entry.path()).unwrap())
-                            .collect();
-                        let mut files_list: Vec<PathBuf> = Vec::new();
-                        {
-                            let mut directories: Vec<PathBuf> = Vec::new();
-                            let mut files: Vec<PathBuf> = Vec::new();
-                            for entry in directory_contents {
-                                if entry.is_dir() {
-                                    directories.push(entry);
-                                } else if entry.is_file() {
-                                    files.push(entry);
-                                }
-                            }
-                            directories.sort();
-                            files.sort();
-                            files_list.append(&mut directories);
-                            files_list.append(&mut files);
-                        }
                         for _ in 0..(model.inputs.series_num - model.inputs.file_lists.len() as i8)
                         {
-                            model
-                                .inputs
-                                .file_lists
-                                .push(FileList::from_iter(files_list.clone().into_iter()));
+                            model.inputs.file_lists.push(FileList::from_iter(
+                                model
+                                    .get_current_file_list(PathBuf::from("./"))
+                                    .clone()
+                                    .into_iter(),
+                            ));
                             model.inputs.field_values.push(HashMap::from([
                                 (InputField::Author, String::from("Surname, Forename")),
                                 (InputField::Series, String::from("Placeholder title")),
@@ -103,7 +79,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                     }
                     Direction::Next => {
                         if !model.inputs.file_lists[model.inputs.current_series_num]
-                            .selected.is_empty()
+                            .selected
+                            .is_empty()
                         {
                             model.current_page.saturating_add(1)
                         } else {
@@ -155,14 +132,11 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         }
         EventMessage::ChangeDirectory(directory) => {
             if directory.is_dir() {
-                let files_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
-                files_list.current_directory = directory;
-                files_list.items = read_dir(&files_list.current_directory)
-                    .unwrap()
-                    .filter_map(|entry| entry.ok())
-                    .map(|entry| entry.path())
-                    .collect();
-                files_list.state.selected = Some(0);
+                let items = model.get_current_file_list(directory.clone());
+                let file_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
+                file_list.items = items;
+                file_list.current_directory = directory;
+                file_list.state.selected = Some(0);
             }
         }
         EventMessage::ChangeField(direction) => match direction {

@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    fs::canonicalize,
+    fs::{canonicalize, read_dir},
     path::PathBuf,
 };
 
@@ -53,7 +53,7 @@ impl FromIterator<PathBuf> for FileList {
             items: iter.into_iter().collect(),
             state: ListState::default(),
             selected: HashSet::default(),
-            current_directory: canonicalize(PathBuf::from("./")).unwrap(),
+            current_directory: PathBuf::from("./"),
         }
     }
 }
@@ -110,5 +110,31 @@ impl Model {
             current_page: 3,
             inputs: Input::new(),
         }
+    }
+
+    pub fn get_current_file_list(&self, current_directory: PathBuf) -> Vec<PathBuf> {
+        let directory_contents: Vec<PathBuf> = read_dir(current_directory)
+            .unwrap()
+            .filter_map(|entry| entry.ok())
+            .map(|entry| canonicalize(entry.path()).unwrap())
+            .collect();
+        let mut files_list: Vec<PathBuf> = Vec::new();
+        {
+            let mut directories: Vec<PathBuf> = Vec::new();
+            let mut files: Vec<PathBuf> = Vec::new();
+            for entry in directory_contents {
+                if entry.is_dir() {
+                    directories.push(entry);
+                } else if entry.is_file() {
+                    files.push(entry);
+                }
+            }
+            directories.sort();
+            files.sort();
+            files_list.append(&mut directories);
+            files_list.append(&mut files);
+        }
+
+        files_list
     }
 }
