@@ -1,12 +1,11 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap};
 
-use crate::model::{Input, InputField, Model, Page};
+use crate::model::{InputField, Model, Page};
 
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
-    symbols::border,
     text::{Line, Text},
     widgets::{Block, BorderType, Borders, Paragraph},
 };
