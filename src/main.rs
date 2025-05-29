@@ -7,11 +7,13 @@ use model::Model;
 use update::{handle_event, update};
 use view::View;
 
+use cli_log::*;
 use std::io;
 
 use ratatui::{Terminal, backend::CrosstermBackend};
 
 fn main() -> color_eyre::Result<()> {
+    init_cli_log!("ebook");
     tui::install_panic_hook();
     let mut terminal: Terminal<CrosstermBackend<io::Stdout>> = tui::init_terminal()?;
 
