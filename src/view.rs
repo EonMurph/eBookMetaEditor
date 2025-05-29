@@ -239,13 +239,16 @@ impl View {
 
         let inputs: Vec<Paragraph> = Vec::from([
             Paragraph::new(Line::from(
-                model.inputs.field_values[&InputField::Author].as_str(),
+                model.inputs.field_values[model.inputs.current_series_num][&InputField::Author]
+                    .as_str(),
             )),
             Paragraph::new(Line::from(
-                model.inputs.field_values[&InputField::Series].as_str(),
+                model.inputs.field_values[model.inputs.current_series_num][&InputField::Series]
+                    .as_str(),
             )),
             Paragraph::new(Line::from(
-                model.inputs.field_values[&InputField::Format].as_str(),
+                model.inputs.field_values[model.inputs.current_series_num][&InputField::Format]
+                    .as_str(),
             )),
         ]);
 

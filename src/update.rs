@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::{canonicalize, read_dir},
     path::PathBuf,
     time::Duration,
@@ -74,6 +75,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                 .inputs
                                 .file_lists
                                 .push(FileList::from_iter(files_list.clone().into_iter()));
+                            model.inputs.field_values.push(HashMap::from([
+                                (InputField::Author, String::from("Surname, Forename")),
+                                (InputField::Series, String::from("Placeholder title")),
+                                (
+                                    InputField::Format,
+                                    String::from("{series_name} ({position}) - {book_title}"),
+                                ),
+                            ]))
                         }
                     }
                     match direction {
@@ -169,18 +178,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         },
         EventMessage::InputText(char) => {
-            if let Some(value) = model
-                .inputs
-                .field_values
+            if let Some(value) = model.inputs.field_values[model.inputs.current_series_num]
                 .get_mut(&model.inputs.currently_editing)
             {
                 value.push(char);
             }
         }
         EventMessage::RemoveText => {
-            if let Some(value) = model
-                .inputs
-                .field_values
+            if let Some(value) = model.inputs.field_values[model.inputs.current_series_num]
                 .get_mut(&model.inputs.currently_editing)
             {
                 value.pop();

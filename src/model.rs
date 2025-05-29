@@ -75,8 +75,8 @@ pub struct Input {
     pub file_lists: Vec<FileList>,
     /// InputField representing the current field being edited
     pub currently_editing: InputField,
-    /// HashMap with key of InputField and value of the String that field is holding
-    pub field_values: HashMap<InputField, String>,
+    /// Vector of HashMaps with key of InputField and value of the String that field is holding
+    pub field_values: Vec<HashMap<InputField, String>>,
 }
 
 impl Input {
@@ -87,11 +87,7 @@ impl Input {
             current_series_num: 0,
             file_lists: Vec::new(),
             currently_editing: InputField::Author,
-            field_values: HashMap::from([
-                (InputField::Author, String::from("Surname, Forename")),
-                (InputField::Series, String::from("Placeholder title")),
-                (InputField::Format, String::from("{series_name} ({position}) - {book_title}")),
-            ]),
+            field_values: Vec::new(),
         }
     }
 }
