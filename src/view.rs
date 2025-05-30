@@ -154,7 +154,7 @@ impl View {
 
     /// Draw the sidebar showing selected files
     fn draw_selected_files(
-        model: &mut Model,
+        model: &Model,
         frame: &mut Frame,
         area: Rect,
     ) -> color_eyre::Result<()> {
@@ -195,7 +195,7 @@ impl View {
     }
 
     /// Draw the page for inputting data for each series
-    fn draw_book_data_input(model: &mut Model, frame: &mut Frame, area: Rect) {
+    fn draw_book_data_input(model: &Model, frame: &mut Frame, area: Rect) {
         let chunks = Layout::vertical([
             Constraint::Ratio(1, 6),
             Constraint::Ratio(1, 6),
