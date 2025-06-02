@@ -208,7 +208,7 @@ impl View {
             View::centered_rect(70, 80, top_chunks[1]),
             View::centered_rect(50, 75, chunks[1]),
         ];
-        let style = |field: InputField| {
+        let border_color = |field: InputField| {
             if model.inputs.currently_editing == field {
                 Style::default().fg(Color::Green)
             } else {
@@ -217,19 +217,19 @@ impl View {
         };
         frame.render_widget(
             Block::bordered()
-                .border_style(style(InputField::Author))
+                .border_style(border_color(InputField::Author))
                 .title("Author Name"),
             input_chunks[0],
         );
         frame.render_widget(
             Block::bordered()
-                .border_style(style(InputField::Series))
+                .border_style(border_color(InputField::Series))
                 .title("Series Name"),
             input_chunks[1],
         );
         frame.render_widget(
             Block::bordered()
-                .border_style(style(InputField::Format))
+                .border_style(border_color(InputField::Format))
                 .title("Format String"),
             input_chunks[2],
         );
@@ -280,8 +280,23 @@ impl View {
             Constraint::Percentage(45),
             Constraint::Percentage(50),
         ];
-        let files_table = Table::new(file_rows, widths).block(Block::bordered());
-        frame.render_widget(files_table, chunk);
+
+        let border_color = |field: InputField| {
+            if model.inputs.currently_editing == field {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default()
+            }
+        };
+
+        let files_table = Table::new(file_rows, widths);
+        frame.render_widget(
+            Block::bordered()
+                .title("Book Order")
+                .border_style(border_color(InputField::BookOrder)),
+            chunk,
+        );
+        frame.render_widget(files_table, View::centered_rect(90, 90, chunk));
     }
 
     /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)
