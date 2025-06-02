@@ -18,8 +18,6 @@ pub enum Page {
     FileSelection,
     /// Page for inputting the data for each book in the series
     BookData,
-    /// Page for placing the books in their respective orders
-    OrderBooks,
     /// Loading page shown while metadata is being edited
     Loading,
 }
