@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fs::{canonicalize, read_dir},
     path::PathBuf,
 };
@@ -40,8 +40,8 @@ pub struct FileList {
     pub items: Vec<PathBuf>,
     /// A list state object holding a reference to the current highlighted item
     pub state: ListState,
-    /// A hash set of all the files selected
-    pub selected: HashSet<PathBuf>,
+    /// A vector of all the files selected
+    pub selected: Vec<PathBuf>,
     /// The path of the current directory
     pub current_directory: PathBuf,
 }
@@ -52,7 +52,7 @@ impl FromIterator<PathBuf> for FileList {
         FileList {
             items: iter.into_iter().collect(),
             state: ListState::default(),
-            selected: HashSet::default(),
+            selected: Vec::new(),
             current_directory: canonicalize(PathBuf::from("./")).unwrap(),
         }
     }
@@ -64,6 +64,7 @@ pub enum InputField {
     Author,
     Series,
     Format,
+    BookOrder,
 }
 /// Struct to hold input field data
 pub struct Input {

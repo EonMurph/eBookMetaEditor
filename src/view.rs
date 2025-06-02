@@ -7,7 +7,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
     text::{Line, Text},
-    widgets::{Block, BorderType, Borders, Paragraph},
+    widgets::{Block, BorderType, Borders, Paragraph, Row, Table},
 };
 use tui_widget_list::{ListBuilder, ListState, ListView};
 
@@ -255,6 +255,36 @@ impl View {
         for i in 0..inputs.len() {
             frame.render_widget(&inputs[i], View::centered_rect(85, 50, input_chunks[i]));
         }
+        View::draw_book_order(model, frame, chunks[2]);
+    }
+
+    /// Draw the box for showing and giving the order of the books in the series
+    fn draw_book_order(model: &Model, frame: &mut Frame, area: Rect) {
+        let chunk = Layout::default()
+            .constraints([Constraint::Min(0)])
+            .horizontal_margin(5)
+            .split(area)[0];
+
+        let current_series = model.inputs.current_series_num;
+        let files = &model.inputs.file_lists[current_series].selected;
+
+        let file_rows: Vec<Row> = (0..files.len())
+            .map(|i| {
+                Row::new(vec![
+                    (i + 1).to_string(),
+                    String::from("Book Title"),
+                    files[i].file_name().unwrap().to_string_lossy().to_string(),
+                ])
+            })
+            .collect();
+        // Columns widths are constrained in the same way as Layout...
+        let widths = [
+            Constraint::Percentage(5),
+            Constraint::Percentage(45),
+            Constraint::Percentage(50),
+        ];
+        let files_table = Table::new(file_rows, widths).block(Block::bordered());
+        frame.render_widget(files_table, chunk);
     }
 
     /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)

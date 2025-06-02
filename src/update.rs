@@ -123,9 +123,9 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 let file_name = &file_list.items[selected_idx];
                 if file_name.is_file() {
                     if file_list.selected.contains(file_name) {
-                        file_list.selected.remove(file_name);
+                        file_list.selected.retain(|value| value != file_name);
                     } else {
-                        file_list.selected.insert(file_name.to_owned());
+                        file_list.selected.push(file_name.to_owned());
                     }
                 }
             }
@@ -145,7 +145,8 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 model.inputs.currently_editing = match model.inputs.currently_editing {
                     InputField::Author => InputField::Series,
                     InputField::Series => InputField::Format,
-                    InputField::Format => InputField::Author,
+                    InputField::Format => InputField::BookOrder,
+                    InputField::BookOrder => InputField::Author,
                 }
             }
         },
