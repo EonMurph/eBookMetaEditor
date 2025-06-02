@@ -1,3 +1,4 @@
 /target
 .vscode
 dev_notes.md
+*.log
