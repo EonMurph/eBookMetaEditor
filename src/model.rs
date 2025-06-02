@@ -66,6 +66,7 @@ pub enum InputField {
     Format,
     BookOrder,
 }
+
 /// Struct to hold input field data
 pub struct Input {
     /// Integer representing the number of series being edited

@@ -58,7 +58,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                     InputField::Format,
                                     String::from("{series_name} ({position}) - {book_title}"),
                                 ),
-                            ]))
+                            ]));
                         }
                     }
                     match direction {
@@ -70,7 +70,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 }
                 Page::FileSelection => match direction {
                     Direction::Previous => {
-                        if model.inputs.current_series_num == 0 {
+                        if current_idx == 0 {
                             model.current_page.saturating_sub(1)
                         } else {
                             model.inputs.current_series_num -= 1;
@@ -78,10 +78,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                         }
                     }
                     Direction::Next => {
-                        if !model.inputs.file_lists[model.inputs.current_series_num]
-                            .selected
-                            .is_empty()
-                        {
+                        if !model.inputs.file_lists[current_idx].selected.is_empty() {
                             model.current_page.saturating_add(1)
                         } else {
                             model.current_page
@@ -133,7 +130,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         EventMessage::ChangeDirectory(directory) => {
             if directory.is_dir() {
                 let items = model.get_current_file_list(directory.clone());
-                let file_list = &mut model.inputs.file_lists[model.inputs.current_series_num];
+                let file_list = &mut model.inputs.file_lists[current_idx];
                 file_list.items = items;
                 file_list.current_directory = canonicalize(directory).unwrap();
                 file_list.state.selected = Some(0);
@@ -151,15 +148,15 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         },
         EventMessage::InputText(char) => {
-            if let Some(value) = model.inputs.field_values[model.inputs.current_series_num]
-                .get_mut(&model.inputs.currently_editing)
+            if let Some(value) =
+                model.inputs.field_values[current_idx].get_mut(&model.inputs.currently_editing)
             {
                 value.push(char);
             }
         }
         EventMessage::RemoveText => {
-            if let Some(value) = model.inputs.field_values[model.inputs.current_series_num]
-                .get_mut(&model.inputs.currently_editing)
+            if let Some(value) =
+                model.inputs.field_values[current_idx].get_mut(&model.inputs.currently_editing)
             {
                 value.pop();
             }

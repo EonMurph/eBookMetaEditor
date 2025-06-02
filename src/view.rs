@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap};
+use std::collections::BTreeMap;
 
 use crate::model::{InputField, Model, Page};
 
@@ -106,7 +106,7 @@ impl View {
     ) -> color_eyre::Result<()> {
         let current_idx = model.inputs.current_series_num;
         let file_list = &mut model.inputs.file_lists[current_idx];
-        let builder = ListBuilder::new(|context| {
+        let file_builder = ListBuilder::new(|context| {
             let file_name = &file_list.items[context.index];
 
             let mut style = Style::default().fg(Color::default());
@@ -139,25 +139,22 @@ impl View {
             (item, 1)
         });
 
-        let list = ListView::new(builder, file_list.items.len()).infinite_scrolling(true);
+        let file_list_widget =
+            ListView::new(file_builder, file_list.items.len()).infinite_scrolling(true);
         let state = &mut file_list.state;
 
         let file_chunks =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .split(area);
 
-        frame.render_stateful_widget(list, file_chunks[0], state);
+        frame.render_stateful_widget(file_list_widget, file_chunks[0], state);
         View::draw_selected_files(model, frame, file_chunks[1])?;
 
         Ok(())
     }
 
     /// Draw the sidebar showing selected files
-    fn draw_selected_files(
-        model: &Model,
-        frame: &mut Frame,
-        area: Rect,
-    ) -> color_eyre::Result<()> {
+    fn draw_selected_files(model: &Model, frame: &mut Frame, area: Rect) -> color_eyre::Result<()> {
         let current_idx = model.inputs.current_series_num;
         let file_list = &model.inputs.file_lists[current_idx];
         let mut files: BTreeMap<String, Vec<Line>> = BTreeMap::new();
@@ -175,7 +172,7 @@ impl View {
         }
 
         let directories: Vec<&String> = files.keys().collect();
-        let directory_builder = ListBuilder::new(|context| {
+        let directories_builder = ListBuilder::new(|context| {
             let directory = directories[context.index];
             let mut directory_block_lines: Vec<Line> =
                 Vec::from([Line::from(directory.clone()).style(Style::default().fg(Color::Green))]);
@@ -187,9 +184,9 @@ impl View {
             (directory_block, files[directory].len() as u16 + 1)
         });
 
-        let list = ListView::new(directory_builder, files.len());
+        let directories_list_widget = ListView::new(directories_builder, files.len());
 
-        frame.render_stateful_widget(list, area, &mut ListState::default());
+        frame.render_stateful_widget(directories_list_widget, area, &mut ListState::default());
 
         Ok(())
     }
