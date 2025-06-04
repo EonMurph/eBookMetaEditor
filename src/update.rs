@@ -35,7 +35,7 @@ pub enum EventMessage {
 
 /// Function for processing events
 pub fn update(model: &mut Model, msg: EventMessage) {
-    let current_idx = model.inputs.current_series_num;
+    let current_series = model.inputs.current_series_num;
 
     match msg {
         EventMessage::Quit => model.running = false,
@@ -70,7 +70,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 }
                 Page::FileSelection => match direction {
                     Direction::Previous => {
-                        if current_idx == 0 {
+                        if current_series == 0 {
                             model.current_page.saturating_sub(1)
                         } else {
                             model.inputs.current_series_num -= 1;
@@ -78,7 +78,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                         }
                     }
                     Direction::Next => {
-                        if !model.inputs.file_lists[current_idx].selected.is_empty() {
+                        if !model.inputs.file_lists[current_series].selected.is_empty() {
                             model.current_page.saturating_add(1)
                         } else {
                             model.current_page
@@ -108,13 +108,13 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             model.inputs.series_num = model.inputs.series_num.clamp(1, i8::MAX);
         }
         EventMessage::NextFile => {
-            model.inputs.file_lists[current_idx].state.next();
+            model.inputs.file_lists[current_series].state.next();
         }
         EventMessage::PreviousFile => {
-            model.inputs.file_lists[current_idx].state.previous();
+            model.inputs.file_lists[current_series].state.previous();
         }
         EventMessage::SelectFile => {
-            let file_list = &mut model.inputs.file_lists[current_idx];
+            let file_list = &mut model.inputs.file_lists[current_series];
             let state = &file_list.state;
             if let Some(selected_idx) = state.selected {
                 let file_name = &file_list.items[selected_idx];
@@ -130,7 +130,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         EventMessage::ChangeDirectory(directory) => {
             if directory.is_dir() {
                 let items = model.get_current_file_list(directory.clone());
-                let file_list = &mut model.inputs.file_lists[current_idx];
+                let file_list = &mut model.inputs.file_lists[current_series];
                 file_list.items = items;
                 file_list.current_directory = canonicalize(directory).unwrap();
                 file_list.state.selected = Some(0);
@@ -149,14 +149,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         },
         EventMessage::InputText(char) => {
             if let Some(value) =
-                model.inputs.field_values[current_idx].get_mut(&model.inputs.currently_editing)
+                model.inputs.field_values[current_series].get_mut(&model.inputs.currently_editing)
             {
                 value.push(char);
             }
         }
         EventMessage::RemoveText => {
             if let Some(value) =
-                model.inputs.field_values[current_idx].get_mut(&model.inputs.currently_editing)
+                model.inputs.field_values[current_series].get_mut(&model.inputs.currently_editing)
             {
                 value.pop();
             }
