@@ -1,6 +1,7 @@
-use std::{collections::HashMap, fs::canonicalize, path::PathBuf, time::Duration};
+use std::{cmp::Ordering, collections::HashMap, fs::canonicalize, path::PathBuf, time::Duration};
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
+use ratatui::widgets::TableState;
 
 use crate::model::{FileList, InputField, Model, Page};
 
@@ -8,6 +9,12 @@ use crate::model::{FileList, InputField, Model, Page};
 pub(crate) enum Direction {
     Previous,
     Next,
+}
+pub(crate) enum TableDirection {
+    PreviousCol,
+    NextCol,
+    PreviousRow,
+    NextRow,
 }
 /// Enum for holding possible app events
 pub enum EventMessage {
@@ -27,10 +34,16 @@ pub enum EventMessage {
     ChangeDirectory(PathBuf),
     /// Change the input field being worked on
     ChangeField(Direction),
+    /// Change the input field within the file table
+    ChangeTableField(TableDirection),
     /// Input text into the input field
     InputText(char),
     /// Remove text from the input field
     RemoveText,
+    /// Move the books position one down or up in the series
+    SwapBook(Direction),
+    /// Change the index of the book in the series
+    ChangeBookPosition(usize),
 }
 
 /// Function for processing events
@@ -59,6 +72,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                     String::from("{series_name} ({position}) - {book_title}"),
                                 ),
                             ]));
+                            model.inputs.file_table_states.push(TableState::new());
                         }
                     }
                     match direction {
@@ -162,6 +176,65 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 value.pop();
             }
         }
+        EventMessage::ChangeTableField(direction) => {
+            let table_state = &mut model.inputs.file_table_states[current_series];
+            match direction {
+                TableDirection::PreviousCol => {
+                    table_state.select_previous_column();
+                }
+                TableDirection::NextCol => {
+                    table_state.select_next_column();
+                }
+                TableDirection::PreviousRow => {
+                    table_state.select_previous();
+                }
+                TableDirection::NextRow => {
+                    table_state.select_next();
+                }
+            }
+        }
+        EventMessage::SwapBook(direction) => {
+            let table_state = &mut model.inputs.file_table_states[current_series];
+            if let Some(selected_row) = table_state.selected() {
+                let book_list = &mut model.inputs.file_lists[current_series].selected;
+                match direction {
+                    Direction::Next => {
+                        if selected_row < book_list.len() - 1 {
+                            book_list.swap(selected_row, selected_row + 1);
+                            table_state.select_next();
+                        }
+                    }
+                    Direction::Previous => {
+                        if selected_row > 0 {
+                            book_list.swap(selected_row, selected_row - 1);
+                            table_state.select_previous();
+                        }
+                    }
+                }
+            }
+        }
+        EventMessage::ChangeBookPosition(new_index) => {
+            if let Some(current_index) = model.inputs.file_table_states[current_series].selected() {
+                let book_list = &mut model.inputs.file_lists[current_series].selected;
+                let num_books = book_list.len();
+                if (0..num_books).contains(&new_index) {
+                    match new_index.cmp(&current_index) {
+                        Ordering::Less => {
+                            for i in ((new_index + 1)..=current_index).rev() {
+                                book_list.swap(i, i - 1);
+                            }
+                        }
+                        Ordering::Equal => {}
+                        Ordering::Greater => {
+                            for i in current_index..new_index {
+                                book_list.swap(i, i + 1);
+                            }
+                        }
+                    }
+                    model.inputs.file_table_states[current_series].select(Some(new_index));
+                }
+            };
+        }
     }
 }
 
@@ -233,9 +306,42 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
             },
             Page::BookData => match key.code {
                 KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Next)),
-                KeyCode::Backspace => Some(EventMessage::RemoveText),
-                KeyCode::Char(value) => Some(EventMessage::InputText(value)),
-                _ => None,
+                _ => {
+                    if model.inputs.currently_editing == InputField::BookOrder {
+                        match key.code {
+                            KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                                Some(EventMessage::SwapBook(Direction::Previous))
+                            }
+                            KeyCode::Down if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                                Some(EventMessage::SwapBook(Direction::Next))
+                            }
+                            KeyCode::Right => {
+                                Some(EventMessage::ChangeTableField(TableDirection::NextCol))
+                            }
+                            KeyCode::Left => {
+                                Some(EventMessage::ChangeTableField(TableDirection::PreviousCol))
+                            }
+                            KeyCode::Up => {
+                                Some(EventMessage::ChangeTableField(TableDirection::PreviousRow))
+                            }
+                            KeyCode::Down => {
+                                Some(EventMessage::ChangeTableField(TableDirection::NextRow))
+                            }
+                            KeyCode::Char(value) if value.is_ascii_digit() => {
+                                Some(EventMessage::ChangeBookPosition(
+                                    (value.to_digit(10).unwrap() as usize).saturating_sub(1),
+                                ))
+                            }
+                            _ => None,
+                        }
+                    } else {
+                        match key.code {
+                            KeyCode::Backspace => Some(EventMessage::RemoveText),
+                            KeyCode::Char(value) => Some(EventMessage::InputText(value)),
+                            _ => None,
+                        }
+                    }
+                }
             },
             _ => None,
         },

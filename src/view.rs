@@ -192,7 +192,7 @@ impl View {
     }
 
     /// Draw the page for inputting data for each series
-    fn draw_book_data_input(model: &Model, frame: &mut Frame, area: Rect) {
+    fn draw_book_data_input(model: &mut Model, frame: &mut Frame, area: Rect) {
         let chunks = Layout::vertical([
             Constraint::Ratio(1, 6),
             Constraint::Ratio(1, 6),
@@ -256,7 +256,7 @@ impl View {
     }
 
     /// Draw the box for showing and giving the order of the books in the series
-    fn draw_book_order(model: &Model, frame: &mut Frame, area: Rect) {
+    fn draw_book_order(model: &mut Model, frame: &mut Frame, area: Rect) {
         let chunk = Layout::default()
             .constraints([Constraint::Min(0)])
             .horizontal_margin(5)
@@ -289,14 +289,17 @@ impl View {
             }
         };
 
-        let files_table = Table::new(file_rows, widths);
+        let files_table = Table::new(file_rows, widths)
+            .cell_highlight_style(Style::default().fg(Color::Green))
+            .row_highlight_style(Style::default().fg(Color::DarkGray));
         frame.render_widget(
             Block::bordered()
                 .title("Book Order")
                 .border_style(border_color(InputField::BookOrder)),
             chunk,
         );
-        frame.render_widget(files_table, View::centered_rect(90, 90, chunk));
+        let table_state = &mut model.inputs.file_table_states[current_series];
+        frame.render_stateful_widget(files_table, View::centered_rect(90, 90, chunk), table_state);
     }
 
     /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)

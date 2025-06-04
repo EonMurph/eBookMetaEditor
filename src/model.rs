@@ -4,6 +4,7 @@ use std::{
     path::PathBuf,
 };
 
+use ratatui::widgets::TableState;
 use tui_widget_list::ListState;
 
 /// Enum of pages used in the app
@@ -77,6 +78,8 @@ pub struct Input {
     pub currently_editing: InputField,
     /// Vector of HashMaps with key of InputField and value of the String that field is holding
     pub field_values: Vec<HashMap<InputField, String>>,
+    /// State of the Table of selected book
+    pub file_table_states: Vec<TableState>,
 }
 
 impl Input {
@@ -88,6 +91,7 @@ impl Input {
             file_lists: Vec::new(),
             currently_editing: InputField::Author,
             field_values: Vec::new(),
+            file_table_states: Vec::new(),
         }
     }
 }
