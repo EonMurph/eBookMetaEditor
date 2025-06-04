@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::model::{InputField, Model, Page};
 
+use epub::doc::EpubDoc;
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
@@ -267,9 +268,10 @@ impl View {
 
         let file_rows: Vec<Row> = (0..files.len())
             .map(|i| {
+                let epub = EpubDoc::new(&files[i]).unwrap();
                 Row::new(vec![
                     (i + 1).to_string(),
-                    String::from("Book Title"),
+                    String::from(&epub.metadata.get("title").unwrap()[0]),
                     files[i].file_name().unwrap().to_string_lossy().to_string(),
                 ])
             })
