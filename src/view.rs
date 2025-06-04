@@ -303,7 +303,9 @@ impl View {
         let table_state = &mut model.inputs.file_table_states[current_series];
         frame.render_stateful_widget(files_table, View::centered_rect(90, 90, chunk), table_state);
     }
+}
 
+impl View {
     /// Get a rectangle object centred inside another rect with size (percent_x, percent_y)
     fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         // Cut the given rectangle into three vertical pieces
