@@ -115,7 +115,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         }
         EventMessage::SelectFile => {
             let file_list = &mut model.inputs.file_lists[current_series];
-            let state = &file_list.state;
+            let state = &mut file_list.state;
             if let Some(selected_idx) = state.selected {
                 let file_name = &file_list.items[selected_idx];
                 if file_name.is_file() {
@@ -126,6 +126,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                     }
                 }
             }
+            state.next();
         }
         EventMessage::ChangeDirectory(directory) => {
             if directory.is_dir() {
