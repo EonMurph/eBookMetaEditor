@@ -8,7 +8,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
     text::{Line, Text},
-    widgets::{Block, BorderType, Borders, Paragraph, Row, Table},
+    widgets::{Block, BorderType, Borders, Paragraph, Row, Table, TableState},
 };
 use tui_widget_list::{ListBuilder, ListState, ListView};
 
@@ -230,11 +230,11 @@ impl View {
 
         let inputs: Vec<Paragraph> = Vec::from([
             Paragraph::new(Line::from(
-                model.inputs.field_values[model.inputs.current_series_num][&InputField::Series]
+                model.inputs.field_values[model.inputs.current_series_num][&InputField::Series][0]
                     .as_str(),
             )),
             Paragraph::new(Line::from(
-                model.inputs.field_values[model.inputs.current_series_num][&InputField::Format]
+                model.inputs.field_values[model.inputs.current_series_num][&InputField::Format][0]
                     .as_str(),
             )),
         ]);
@@ -260,7 +260,11 @@ impl View {
                 let epub = EpubDoc::new(&files[i]).unwrap();
                 Row::new(vec![
                     (i + 1).to_string(),
-                    String::from(&epub.metadata.get("title").unwrap()[0]),
+                    model.inputs.field_values[current_series]
+                        .get(&InputField::BookTitle)
+                        .unwrap()[i]
+                        .to_owned(),
+                    String::from(&epub.metadata.get("creator").unwrap()[0]),
                     files[i].file_name().unwrap().to_string_lossy().to_string(),
                 ])
             })

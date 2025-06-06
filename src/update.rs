@@ -134,9 +134,31 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 let file_name = &file_list.items[selected_idx];
                 if file_name.is_file() {
                     if file_list.selected.contains(file_name) {
-                        file_list.selected.retain(|value| value != file_name);
+                        for i in 0..file_list.selected.len() {
+                            if &file_list.selected[i] == file_name {
+                                file_list.selected.remove(i);
+                                if let Some(book_titles) = model.inputs.field_values[current_series]
+                                    .get_mut(&InputField::BookTitle)
+                                {
+                                    book_titles.remove(i);
+                                }
+                                break;
+                            }
+                        }
                     } else {
                         file_list.selected.push(file_name.to_owned());
+                        if let Some(book_titles) = model.inputs.field_values[current_series]
+                            .get_mut(&InputField::BookTitle)
+                        {
+                            book_titles.push(
+                                EpubDoc::new(file_name)
+                                    .unwrap()
+                                    .metadata
+                                    .get("title")
+                                    .unwrap()[0]
+                                    .to_owned(),
+                            )
+                        }
                     }
                 }
             }
@@ -160,17 +182,44 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             }
         },
         EventMessage::InputText(char) => {
+            if model.inputs.currently_editing == InputField::BookOrder {
+                let (current_row, current_cell) = model.inputs.file_table_states[current_series]
+                    .selected_cell()
+                    .unwrap_or_default();
+                if current_cell == 1 {
+                    if let Some(book_titles) =
+                        model.inputs.field_values[current_series].get_mut(&InputField::BookTitle)
+                    {
+                        let book_title = &mut book_titles[current_row];
+                        book_title.push(char);
+                    }
+                }
+            }
             if let Some(value) =
                 model.inputs.field_values[current_series].get_mut(&model.inputs.currently_editing)
             {
+                let value = &mut value[0];
                 value.push(char);
             }
         }
         EventMessage::RemoveText => {
+            if model.inputs.currently_editing == InputField::BookOrder {
+                let (current_row, current_cell) = model.inputs.file_table_states[current_series]
+                    .selected_cell()
+                    .unwrap_or_default();
+                if current_cell == 1 {
+                    if let Some(book_titles) =
+                        model.inputs.field_values[current_series].get_mut(&InputField::BookTitle)
+                    {
+                        let book_title = &mut book_titles[current_row];
+                        book_title.pop();
+                    }
+                }
+            }
             if let Some(value) =
                 model.inputs.field_values[current_series].get_mut(&model.inputs.currently_editing)
             {
-                value.pop();
+                value[0].pop();
             }
         }
         EventMessage::ChangeTableField(direction) => {
@@ -196,16 +245,21 @@ pub fn update(model: &mut Model, msg: EventMessage) {
             let table_state = &mut model.inputs.file_table_states[current_series];
             if let Some(selected_row) = table_state.selected() {
                 let book_list = &mut model.inputs.file_lists[current_series].selected;
+                let book_titles = model.inputs.field_values[current_series]
+                    .get_mut(&InputField::BookTitle)
+                    .unwrap();
                 match direction {
                     Direction::Next => {
                         if selected_row < book_list.len() - 1 {
                             book_list.swap(selected_row, selected_row + 1);
+                            book_titles.swap(selected_row, selected_row + 1);
                             table_state.select_next();
                         }
                     }
                     Direction::Previous => {
                         if selected_row > 0 {
                             book_list.swap(selected_row, selected_row - 1);
+                            book_titles.swap(selected_row, selected_row - 1);
                             table_state.select_previous();
                         }
                     }
@@ -215,18 +269,23 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         EventMessage::ChangeBookPosition(new_index) => {
             if let Some(current_index) = model.inputs.file_table_states[current_series].selected() {
                 let book_list = &mut model.inputs.file_lists[current_series].selected;
+                let book_titles = model.inputs.field_values[current_series]
+                    .get_mut(&InputField::BookTitle)
+                    .unwrap();
                 let num_books = book_list.len();
                 if (0..num_books).contains(&new_index) {
                     match new_index.cmp(&current_index) {
                         Ordering::Less => {
                             for i in ((new_index + 1)..=current_index).rev() {
                                 book_list.swap(i, i - 1);
+                                book_titles.swap(i, i - 1);
                             }
                         }
                         Ordering::Equal => {}
                         Ordering::Greater => {
                             for i in current_index..new_index {
                                 book_list.swap(i, i + 1);
+                                book_titles.swap(i, i + 1);
                             }
                         }
                     }
@@ -307,6 +366,11 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                 KeyCode::Tab => Some(EventMessage::ChangeField),
                 _ => {
                     if model.inputs.currently_editing == InputField::BookOrder {
+                        let current_col = model.inputs.file_table_states
+                            [model.inputs.current_series_num]
+                            .selected_column()
+                            .unwrap_or_default();
+
                         match key.code {
                             KeyCode::Up if key.modifiers.contains(KeyModifiers::CONTROL) => {
                                 Some(EventMessage::SwapBook(Direction::Previous))
@@ -326,10 +390,19 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                             KeyCode::Down => {
                                 Some(EventMessage::ChangeTableField(TableDirection::NextRow))
                             }
-                            KeyCode::Char(value) if value.is_ascii_digit() => {
-                                Some(EventMessage::ChangeBookPosition(
-                                    (value.to_digit(10).unwrap() as usize).saturating_sub(1),
-                                ))
+                            KeyCode::Char(value) => {
+                                if value.is_ascii_digit() && current_col != 1 {
+                                    Some(EventMessage::ChangeBookPosition(
+                                        (value.to_digit(10).unwrap() as usize).saturating_sub(1),
+                                    ))
+                                } else if current_col == 1 {
+                                    Some(EventMessage::InputText(value))
+                                } else {
+                                    None
+                                }
+                            }
+                            KeyCode::Backspace if current_col == 1 => {
+                                Some(EventMessage::RemoveText)
                             }
                             _ => None,
                         }

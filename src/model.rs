@@ -63,6 +63,7 @@ pub enum InputField {
     Series,
     Format,
     BookOrder,
+    BookTitle,
 }
 
 /// Struct to hold input field data
@@ -76,7 +77,7 @@ pub struct Input {
     /// InputField representing the current field being edited
     pub currently_editing: InputField,
     /// Vector of HashMaps with key of InputField and value of the String that field is holding
-    pub field_values: Vec<HashMap<InputField, String>>,
+    pub field_values: Vec<HashMap<InputField, Vec<String>>>,
     /// State of the Table of selected book
     pub file_table_states: Vec<TableState>,
 }
