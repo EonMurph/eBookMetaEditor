@@ -17,6 +17,11 @@ pub(crate) enum TableDirection {
     PreviousRow,
     NextRow,
 }
+/// Whether the help page is to be shown or hidden
+pub(crate) enum HelpPageState {
+    Show,
+    Hide,
+}
 /// Enum for holding possible app events
 pub enum EventMessage {
     /// Change the current page
@@ -45,6 +50,8 @@ pub enum EventMessage {
     SwapBook(Direction),
     /// Change the index of the book in the series
     ChangeBookPosition(usize),
+    /// Show or hide the help page
+    ChangeHelpPageStatus(HelpPageState),
 }
 
 /// Function for processing events
@@ -327,6 +334,14 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 }
             };
         }
+        EventMessage::ChangeHelpPageStatus(status) => match status {
+            HelpPageState::Show => {
+                model.help = true;
+            }
+            HelpPageState::Hide => {
+                model.help = false;
+            }
+        },
     }
 }
 
@@ -347,10 +362,15 @@ pub fn handle_event(model: &Model) -> color_eyre::Result<Option<EventMessage>> {
 /// Function for processing key presses and returning related event
 fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
     match key.code {
+        KeyCode::Char('h') if key.modifiers.contains(KeyModifiers::ALT) => {
+            Some(EventMessage::ChangeHelpPageStatus(HelpPageState::Show))
+        }
+        KeyCode::Esc if model.help => Some(EventMessage::ChangeHelpPageStatus(HelpPageState::Hide)),
         KeyCode::Char('q') | KeyCode::Esc => Some(EventMessage::Quit),
         KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
             Some(EventMessage::Quit)
         }
+        _ if model.help => None,
         KeyCode::Right if key.modifiers.contains(KeyModifiers::CONTROL) => {
             Some(EventMessage::ChangePage(Direction::Next))
         }

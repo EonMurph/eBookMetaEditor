@@ -6,7 +6,7 @@ use epub::doc::EpubDoc;
 use ratatui::{
     Frame,
     layout::{Constraint, Layout, Rect},
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::{Line, Text},
     widgets::{Block, BorderType, Borders, Paragraph, Row, Table, TableState},
 };
@@ -36,15 +36,18 @@ impl View {
         View::draw_title_bar(frame, chunks[0]);
         View::draw_status_bar(model, frame, chunks[2]);
 
-        match Page::VALUES[model.current_page] {
-            Page::Home => View::draw_home(frame, chunks[1]),
-            Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
-            Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,
-            Page::BookData => View::draw_book_data_input(model, frame, chunks[1]),
-            Page::Loading => View::draw_loading(model, frame, chunks[1])?,
-            _ => {}
-        };
-
+        if model.help {
+            View::draw_help(model, frame, chunks[1]);
+        } else {
+            match Page::VALUES[model.current_page] {
+                Page::Home => View::draw_home(frame, chunks[1]),
+                Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
+                Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,
+                Page::BookData => View::draw_book_data_input(model, frame, chunks[1]),
+                Page::Loading => View::draw_loading(model, frame, chunks[1])?,
+                _ => {}
+            };
+        }
 
         Ok(())
     }
@@ -379,6 +382,130 @@ impl View {
         }
 
         Ok(())
+    }
+
+    /// Draw the help page based on the current page
+    fn draw_help(model: &Model, frame: &mut Frame, area: Rect) {
+        let main_chunk = View::centered_rect(50, 90, area);
+        let main_block = Block::bordered();
+
+        let heading_style = Style::default()
+            .add_modifier(Modifier::BOLD)
+            .fg(Color::Green);
+
+        let content = match Page::VALUES[model.current_page] {
+            Page::SeriesData => {
+                let heading_line = Line::from("Help page for num series input page:");
+                let increase_decrease_line = Line::from(
+                    "Press <Left | Right> to increase and decrease the number of series.",
+                );
+                Paragraph::new(Text::from(vec![
+                    heading_line,
+                    Line::default(),
+                    Line::from("-- Interact -- ").style(heading_style),
+                    increase_decrease_line,
+                ]))
+            }
+            Page::FileSelection => {
+                let description = Line::from(format!(
+                    "This page is where you select the files to be edited for series {}. (at least one file must be selected)",
+                    model.inputs.current_series_num + 1
+                ));
+                let side_panel_description = Line::from(
+                    "When you have files selected a side panel appears showing the selected files",
+                );
+                let side_panel_description_cont = Line::from("and their respective parent folder.");
+
+                let nav_line = Line::from(">> Press <Up | Down> to navigate the file list.");
+                let nav_shallower_line = Line::from(">> Press <Left> to go up a directory.");
+                let nav_deeper_line = Line::from(">> Press <Right> to go enter a directory.");
+                let toggle_file_line =
+                    Line::from(">> Press <Tab> to toggle the selection of a file.");
+
+                Paragraph::new(Text::from(vec![
+                    Line::from("-- Description --").style(heading_style),
+                    description,
+                    side_panel_description,
+                    side_panel_description_cont,
+                    Line::default(),
+                    Line::default(),
+                    Line::from("-- Nav --").style(heading_style),
+                    nav_line,
+                    nav_shallower_line,
+                    nav_deeper_line,
+                    Line::default(),
+                    Line::from("-- Interact -- ").style(heading_style),
+                    toggle_file_line,
+                ]))
+            }
+            Page::BookData => {
+                let description = Line::from(format!(
+                    "This page is where you input the data for series {}.",
+                    model.inputs.current_series_num + 1
+                ));
+
+                let series_name_info =
+                    Line::from("Use the 'Series Name' block to input the name of the series.");
+
+                let format_string_info = Line::from(
+                    "Use the 'Format String' block to input the format you want the final",
+                );
+                let format_string_info_cont = Line::from("book title to follow:");
+                let format_string_title = Line::from(" - Book title: ${title}");
+                let format_string_series = Line::from(" - Series name: ${series}");
+                let format_string_position = Line::from(" - Position in series: ${position}");
+
+                let book_order_info = Line::from(
+                    "Use the table to change the order of the books and correct book titles.",
+                );
+
+                let swap_fields_line =
+                    Line::from(">> Press <Tab> to change the currently editing field.");
+                let nav_table_line =
+                    Line::from(">> Press <Up | Down | Left | Right> to navigate the file table.");
+
+                let change_text_line =
+                    Line::from("While highlighting either text box or the book title:");
+                let change_text_line_cont =
+                    Line::from(" >> Press <any character> to edit the text.");
+                let change_order_line =
+                    Line::from("While highlighting any book but not the title:");
+                let change_order_digit_line =
+                    Line::from(" >> Press <any digit> to move that book into that position.");
+                let change_order_arrows_line =
+                    Line::from(" >> Press <Ctrl + Up | Down> to move the book one position.");
+
+                Paragraph::new(Text::from(vec![
+                    Line::from("-- Description --").style(heading_style),
+                    description,
+                    Line::default(),
+                    series_name_info,
+                    Line::default(),
+                    format_string_info,
+                    format_string_info_cont,
+                    format_string_title,
+                    format_string_series,
+                    format_string_position,
+                    Line::default(),
+                    book_order_info,
+                    Line::default(),
+                    Line::from("-- Nav --").style(heading_style),
+                    swap_fields_line,
+                    nav_table_line,
+                    Line::default(),
+                    Line::from("-- Interact --").style(heading_style),
+                    change_text_line,
+                    change_text_line_cont,
+                    change_order_line,
+                    change_order_digit_line,
+                    change_order_arrows_line,
+                ]))
+            }
+            _ => Paragraph::new(Text::from("No help for this page.")),
+        };
+
+        frame.render_widget(main_block, main_chunk);
+        frame.render_widget(content, View::centered_rect(90, 90, main_chunk));
     }
 }
 

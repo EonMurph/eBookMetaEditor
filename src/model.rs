@@ -107,6 +107,8 @@ impl Input {
 pub struct Model {
     /// Boolean representing whether the app is running or not
     pub running: bool,
+    /// Boolean representing whether the app is on the help page or not
+    pub help: bool,
     /// Integer representing the current page
     pub current_page: usize,
     /// The Input struct for the app
@@ -126,6 +128,7 @@ impl Model {
     pub fn new() -> Self {
         Model {
             running: true,
+            help: true,
             current_page: 3,
             inputs: Input::new(),
             all_selected: Vec::new(),
