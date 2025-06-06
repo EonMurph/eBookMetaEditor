@@ -1,11 +1,13 @@
 use std::{
-    collections::HashMap,
-    fs::{canonicalize, read_dir},
-    path::PathBuf,
+    collections::{HashMap, HashSet}, ffi::OsStr, fs::{canonicalize, read, read_dir, File}, io::{Read, Write}, path::{Path, PathBuf}
 };
 
 use ratatui::widgets::TableState;
+use regex::Regex;
+use tempfile::{TempDir, tempdir};
 use tui_widget_list::ListState;
+use walkdir::WalkDir;
+use zip::{CompressionMethod, ZipArchive, ZipWriter, write::SimpleFileOptions};
 
 /// Enum of pages used in the app
 pub enum Page {
@@ -168,5 +170,114 @@ impl Model {
         }
 
         files_list
+    }
+
+    pub fn edit_epub(&mut self, epub_path: &PathBuf) -> color_eyre::Result<()> {
+        let temp_dir = self.prep_epub(epub_path)?;
+        let (mut meta_file, mut metadata) = self.get_metadata(temp_dir.path())?;
+        metadata = self.edit_metadata(metadata)?;
+        meta_file.write_all(metadata.as_bytes())?;
+        self.repackage_epub(temp_dir.path(), PathBuf::from(epub_path))?;
+
+        temp_dir.close()?;
+
+        self.finished_books.insert(epub_path.to_owned());
+        self.current_book += 1;
+        self.current_book = self.current_book.clamp(0, self.all_selected.len() - 1);
+
+        Ok(())
+    }
+
+    fn prep_epub(&self, epub_path: &PathBuf) -> color_eyre::Result<TempDir> {
+        let temp_dir = tempdir()?;
+
+        let file = File::open(epub_path)?;
+        let mut archive = ZipArchive::new(&file)?;
+        archive.extract(&temp_dir)?;
+
+        Ok(temp_dir)
+    }
+
+    fn get_metadata(&self, temp_dir: &Path) -> color_eyre::Result<(File, String)> {
+        let extracted_files = WalkDir::new(temp_dir)
+            .into_iter()
+            .filter_map(|entry| entry.ok());
+        for extracted_file in extracted_files {
+            if extracted_file.path().file_name().unwrap_or_default() == "content.opf" {
+                let mut content = String::new();
+                File::open(extracted_file.path())
+                    .unwrap()
+                    .read_to_string(&mut content)?;
+                return Ok((File::create(extracted_file.into_path())?, content));
+            }
+        }
+
+        Err(color_eyre::eyre::eyre!("content.opf not found"))
+    }
+
+    fn edit_metadata(&self, mut metadata: String) -> color_eyre::Result<String> {
+        let current_book_inputs = &self.all_field_values[self.current_book];
+        if let Some(format_string) = current_book_inputs.get(&InputField::Format) {
+            let format_string = format_string.as_str();
+            let position = &format!(
+                "{:0>2}",
+                (&current_book_inputs[&InputField::BookOrder].parse::<u32>()? + 1).to_string()
+            );
+            let title = &current_book_inputs[&InputField::BookTitle];
+            let series = &current_book_inputs[&InputField::Series];
+            let title_re = Regex::new(r#"(<.*(title|meta).*>)(.+)(</.*(title|meta).*>)"#)?;
+            let sort_re = Regex::new(r#"(title_sort.*content=")(.*)("/>)"#)?;
+            let substitutions =
+                HashMap::from([("position", position), ("title", title), ("series", series)]);
+            let formatted_string = subst::substitute(format_string, &substitutions)?;
+
+            metadata = title_re
+                .replace_all(&metadata, |caps: &regex::Captures| {
+                    format!("{}{}{}", &caps[1], formatted_string, &caps[4])
+                })
+                .to_string();
+
+            metadata = sort_re
+                .replace_all(&metadata, |caps: &regex::Captures| {
+                    format!("{}{}{}", &caps[1], formatted_string, &caps[3])
+                })
+                .to_string();
+        }
+
+        Ok(metadata)
+    }
+
+    fn repackage_epub(&self, temp_dir: &Path, output_path: PathBuf) -> color_eyre::Result<()> {
+        let temp_file = File::create(output_path)?;
+        let mut zip = ZipWriter::new(temp_file);
+
+        zip.start_file("mimetype", SimpleFileOptions::default())?;
+        zip.write_all("application/epub+zip".as_bytes())?;
+
+        for file in WalkDir::new(temp_dir)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
+            let file = file.path();
+            if let Some(file_name) = file.file_name() {
+                if file_name == OsStr::new("mimetype") {
+                    continue;
+                }
+            }
+
+            if file.is_file() {
+                let relative_path = file.strip_prefix(temp_dir)?.to_string_lossy();
+                let options =
+                    SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
+
+                zip.start_file(relative_path, options)?;
+                let contents = read(file)?;
+                zip.write_all(&contents)?;
+            }
+        }
+
+        zip.finish()?;
+
+        Ok(())
     }
 }

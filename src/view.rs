@@ -335,6 +335,11 @@ impl View {
         let file_list_widget = ListView::new(file_builder, selected.len()).infinite_scrolling(true);
         frame.render_stateful_widget(file_list_widget, area, &mut ListState::default());
 
+        if model.current_book < model.all_selected.len() {
+            let book = model.all_selected[model.current_book].to_owned();
+            model.edit_epub(&book)?;
+        }
+
         Ok(())
     }
 }
