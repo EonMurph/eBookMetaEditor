@@ -97,12 +97,16 @@ impl View {
         .split(area);
         // frame.render_widget(status_block, area);
         frame.render_widget(
-            Paragraph::new(Text::from("<- Ctrl-Left")).centered().block(status_block.to_owned()),
+            Paragraph::new(Text::from("<- Ctrl-Left"))
+                .centered()
+                .block(status_block.to_owned()),
             status_chunks[0],
         );
         frame.render_widget(current_page_text, status_chunks[1]);
         frame.render_widget(
-            Paragraph::new(Text::from("Ctrl-Right ->")).centered().block(status_block.to_owned()),
+            Paragraph::new(Text::from("Ctrl-Right ->"))
+                .centered()
+                .block(status_block.to_owned()),
             status_chunks[2],
         );
     }
