@@ -135,6 +135,7 @@ impl Model {
         }
     }
 
+    /// Generate the files for the current directory
     pub fn get_current_file_list(&self, directory: PathBuf) -> Vec<PathBuf> {
         let directory_contents: Vec<PathBuf> = read_dir(directory)
             .unwrap()
@@ -176,6 +177,7 @@ impl Model {
         files_list
     }
 
+    /// Given a reference to a book's path edit the metadata based on the inputs given
     pub fn edit_epub(&mut self, epub_path: &PathBuf) -> color_eyre::Result<()> {
         let temp_dir = self.prep_epub(epub_path)?;
         let (mut meta_file, mut metadata) = self.get_metadata(temp_dir.path())?;
@@ -192,6 +194,7 @@ impl Model {
         Ok(())
     }
 
+    /// Generate the temperary zip file for the epub's files
     fn prep_epub(&self, epub_path: &PathBuf) -> color_eyre::Result<TempDir> {
         let temp_dir = tempdir()?;
 
@@ -202,6 +205,7 @@ impl Model {
         Ok(temp_dir)
     }
 
+    /// Get the epub's content.opf and metadata
     fn get_metadata(&self, temp_dir: &Path) -> color_eyre::Result<(File, String)> {
         let extracted_files = WalkDir::new(temp_dir)
             .into_iter()
@@ -219,6 +223,7 @@ impl Model {
         Err(color_eyre::eyre::eyre!("content.opf not found"))
     }
 
+    /// Edit the metadata based on the inputs given
     fn edit_metadata(&self, mut metadata: String) -> color_eyre::Result<String> {
         let current_book_inputs = &self.all_field_values[self.current_book];
         if let Some(format_string) = current_book_inputs.get(&InputField::Format) {
@@ -251,6 +256,7 @@ impl Model {
         Ok(metadata)
     }
 
+    /// Repackage the epub's files into an epub with the new metadata
     fn repackage_epub(&self, temp_dir: &Path, output_path: PathBuf) -> color_eyre::Result<()> {
         let temp_file = File::create(output_path)?;
         let mut zip = ZipWriter::new(temp_file);
