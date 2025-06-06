@@ -23,7 +23,7 @@ impl View {
         // (title bar, main content, and status bar)
         let chunks = Layout::vertical([
             Constraint::Max(bar_length),
-            Constraint::Min(1),
+            Constraint::Fill(1),
             Constraint::Max(bar_length),
         ])
         .split(frame.area());
@@ -57,12 +57,6 @@ impl View {
             "eBookMetaEditor",
             Style::default().fg(Color::Green),
         ))
-        .block(
-            Block::default()
-                .borders(Borders::RIGHT | Borders::LEFT | Borders::BOTTOM)
-                .border_type(BorderType::Rounded)
-                .style(Style::default()),
-        )
         .centered();
 
         frame.render_widget(title_block, area);
