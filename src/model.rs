@@ -128,8 +128,8 @@ impl Model {
     pub fn new() -> Self {
         Model {
             running: true,
-            help: true,
-            current_page: 3,
+            help: false,
+            current_page: 0,
             inputs: Input::new(),
             all_selected: Vec::new(),
             all_field_values: Vec::new(),
