@@ -290,8 +290,16 @@ impl View {
                 .border_style(border_color(InputField::BookOrder)),
             chunk,
         );
+        frame.render_stateful_widget(
+            Table::new(
+                vec![Row::new(vec!["Position", "Title", "Author", "File Path"])],
+                widths,
+            ),
+            View::centered_rect(90, 90, chunk),
+            &mut TableState::new(),
+        );
         let table_state = &mut model.inputs.file_table_states[current_series];
-        frame.render_stateful_widget(files_table, View::centered_rect(90, 90, chunk), table_state);
+        frame.render_stateful_widget(files_table, View::centered_rect(90, 80, chunk), table_state);
     }
 }
 
