@@ -175,11 +175,12 @@ pub fn update(model: &mut Model, msg: EventMessage) {
         }
         EventMessage::ChangeTableField(direction) => {
             let table_state = &mut model.inputs.file_table_states[current_series];
+            let row_selected = table_state.selected().is_some();
             match direction {
-                TableDirection::PreviousCol => {
+                TableDirection::PreviousCol if row_selected => {
                     table_state.select_previous_column();
                 }
-                TableDirection::NextCol => {
+                TableDirection::NextCol if row_selected => {
                     table_state.select_next_column();
                 }
                 TableDirection::PreviousRow => {
@@ -188,6 +189,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 TableDirection::NextRow => {
                     table_state.select_next();
                 }
+                _ => {}
             }
         }
         EventMessage::SwapBook(direction) => {
