@@ -25,11 +25,12 @@ pub enum Page {
 
 impl Page {
     /// List of pages used for cycling through the app pages
-    pub const VALUES: [Self; 4] = [
+    pub const VALUES: [Self; 5] = [
         Self::Home,
         Self::SeriesData,
         Self::FileSelection,
         Self::BookData,
+        Self::Loading,
     ];
 }
 
@@ -104,6 +105,14 @@ pub struct Model {
     pub current_page: usize,
     /// The Input struct for the app
     pub inputs: Input,
+    /// Vec containing all the selected books
+    pub all_selected: Vec<PathBuf>,
+    /// Vec containing a HashMap of all the inputs
+    pub all_field_values: Vec<HashMap<InputField, String>>,
+    /// Hashset of the editied books
+    pub finished_books: HashSet<PathBuf>,
+    /// Integer representing the index of the current book being edited
+    pub current_book: usize,
 }
 
 impl Model {
@@ -113,6 +122,10 @@ impl Model {
             running: true,
             current_page: 3,
             inputs: Input::new(),
+            all_selected: Vec::new(),
+            all_field_values: Vec::new(),
+            finished_books: HashSet::new(),
+            current_book: 0,
         }
     }
 

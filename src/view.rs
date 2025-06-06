@@ -36,8 +36,8 @@ impl View {
             Page::SeriesData => View::draw_series_page(model, frame, chunks[1]),
             Page::FileSelection => View::draw_file_selection(model, frame, chunks[1])?,
             Page::BookData => View::draw_book_data_input(model, frame, chunks[1]),
-            Page::Quit => todo!(),
-            _ => todo!(),
+            Page::Loading => View::draw_loading(model, frame, chunks[1])?,
+            _ => {}
         };
 
         Ok(())
@@ -304,6 +304,38 @@ impl View {
         );
         let table_state = &mut model.inputs.file_table_states[current_series];
         frame.render_stateful_widget(files_table, View::centered_rect(90, 80, chunk), table_state);
+    }
+
+    fn draw_loading(model: &mut Model, frame: &mut Frame, area: Rect) -> color_eyre::Result<()> {
+        let selected = &model.all_selected;
+        let file_builder = ListBuilder::new(|context| {
+            let file_name = &selected[context.index];
+
+            let mut style = Style::default().fg(Color::default());
+            style = if model.finished_books.contains(file_name) {
+                style.fg(Color::Green)
+            } else if context.index == model.current_book {
+                style.fg(Color::Red)
+            } else {
+                style
+            };
+
+            let text: String;
+            if let Some(filename) = file_name.file_name() {
+                text = filename.to_string_lossy().to_string();
+            } else {
+                text = "Unable to read file".to_string();
+            }
+
+            let item = Paragraph::new(Text::styled(text, style));
+
+            (item, 1)
+        });
+
+        let file_list_widget = ListView::new(file_builder, selected.len()).infinite_scrolling(true);
+        frame.render_stateful_widget(file_list_widget, area, &mut ListState::default());
+
+        Ok(())
     }
 }
 

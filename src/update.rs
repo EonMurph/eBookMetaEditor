@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap, fs::canonicalize, path::PathBuf, time::Duration};
 
 use crossterm::event::{self, Event, KeyCode, KeyModifiers};
+use epub::doc::EpubDoc;
 use ratatui::widgets::TableState;
 
 use crate::model::{FileList, InputField, Model, Page};
@@ -115,6 +116,30 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                             model.inputs.current_series_num += 1;
                             model.current_page.saturating_sub(1)
                         } else {
+                            for i in 0..model.inputs.file_lists.len() {
+                                let file_list = &mut model.inputs.file_lists[i];
+                                for book in &file_list.selected {
+                                    let position =
+                                        file_list.selected.iter().position(|b| b == book).unwrap();
+                                    let title = &model.inputs.field_values[i]
+                                        .get(&InputField::BookTitle)
+                                        .unwrap()[position];
+                                    let series_name = &model.inputs.field_values[i]
+                                        .get(&InputField::Series)
+                                        .unwrap()[0];
+                                    let format_string = &model.inputs.field_values[i]
+                                        .get(&InputField::Format)
+                                        .unwrap()[0];
+                                    model.all_field_values.push(HashMap::from([
+                                        (InputField::Format, format_string.to_string()),
+                                        (InputField::BookOrder, position.to_string()),
+                                        (InputField::BookTitle, title.to_owned()),
+                                        (InputField::Series, series_name.to_owned()),
+                                    ]))
+                                }
+
+                                model.all_selected.append(&mut file_list.selected);
+                            }
                             model.current_page.saturating_add(1) % Page::VALUES.len()
                         }
                     }
