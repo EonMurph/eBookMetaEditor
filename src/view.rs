@@ -18,6 +18,11 @@ pub struct View;
 impl View {
     /// Main draw method from which all other methods are called
     pub fn draw(model: &mut Model, frame: &mut Frame) -> color_eyre::Result<()> {
+        frame.render_widget(
+            Block::new().style(Style::default().bg(Color::Rgb(20, 20, 20))),
+            frame.area(),
+        );
+        
         let bar_length = 2;
         // Split the TUI into three rows
         // (title bar, main content, and status bar)
@@ -40,10 +45,6 @@ impl View {
             _ => {}
         };
 
-        frame.render_widget(
-            Block::new().style(Style::default().bg(Color::Rgb(0, 0, 0))),
-            frame.area(),
-        );
 
         Ok(())
     }
