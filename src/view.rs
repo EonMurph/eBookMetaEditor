@@ -116,17 +116,29 @@ impl View {
 
     /// Draw the app's home page.
     fn draw_home(frame: &mut Frame, area: Rect) {
-        let center_block = View::centered_rect(60, 20, area);
+        let center_chunk = View::centered_rect(60, 30, area);
 
         let title_block = Block::default().borders(Borders::ALL);
-        let title = Paragraph::new(Text::styled(
-            "Press <Ctrl + Left/Right Arrow> to navigate pages.",
-            Style::default().fg(Color::Green),
-        ))
+        let intro_line = Line::from("Welcome to eBookMetaEditor");
+        let nav_line = Line::from("Press <Ctrl + Left | Right> to navigate pages.");
+        let help_line = Line::from("Press <Alt + H> from any page to show the Help screen.");
+        let quit_line = Line::from("Press <Q | Esc> to quit the app.");
+        let title = Paragraph::new(
+            Text::from(vec![
+                Line::default(),
+                intro_line,
+                Line::default(),
+                Line::default(),
+                nav_line,
+                help_line,
+                quit_line,
+            ])
+            .style(Style::default().fg(Color::Green)),
+        )
         .block(title_block)
         .centered();
 
-        frame.render_widget(title, center_block);
+        frame.render_widget(title, center_chunk);
     }
 
     /// Draw the app's number of series selection page
