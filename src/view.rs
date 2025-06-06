@@ -29,7 +29,7 @@ impl View {
         .split(frame.area());
 
         View::draw_title_bar(frame, chunks[0]);
-        View::draw_status_bar(frame, chunks[2]);
+        View::draw_status_bar(model, frame, chunks[2]);
 
         match Page::VALUES[model.current_page] {
             Page::Home => View::draw_home(frame, chunks[1]),
@@ -70,12 +70,46 @@ impl View {
     }
 
     /// Draw the app's status bar showing the information related to the current page
-    fn draw_status_bar(frame: &mut Frame, area: Rect) {
-        let status_block = Block::default()
+    fn draw_status_bar(model: &Model, frame: &mut Frame, area: Rect) {
+        let status_block = &Block::default()
             .borders(Borders::TOP)
             .border_type(BorderType::Thick);
 
-        frame.render_widget(status_block, area);
+        let current_page_string = match Page::VALUES[model.current_page] {
+            Page::Home => "Home",
+            Page::SeriesData => "Num Series Selection",
+            Page::FileSelection => "File Selection",
+            Page::BookData => "Book Data Input",
+            Page::Loading => "Metadata Edit Loading",
+            _ => "",
+        };
+        let current_page_text = Paragraph::new(Text::styled(
+            current_page_string,
+            Style::default().fg(Color::Green),
+        ))
+        .block(
+            status_block
+                .to_owned()
+                .borders(Borders::LEFT | Borders::RIGHT | Borders::TOP),
+        )
+        .centered();
+
+        let status_chunks = Layout::horizontal([
+            Constraint::Percentage(10),
+            Constraint::Fill(1),
+            Constraint::Percentage(10),
+        ])
+        .split(area);
+        // frame.render_widget(status_block, area);
+        frame.render_widget(
+            Paragraph::new(Text::from("<- Ctrl-Left")).centered().block(status_block.to_owned()),
+            status_chunks[0],
+        );
+        frame.render_widget(current_page_text, status_chunks[1]);
+        frame.render_widget(
+            Paragraph::new(Text::from("Ctrl-Right ->")).centered().block(status_block.to_owned()),
+            status_chunks[2],
+        );
     }
 
     /// Draw the app's home page.
