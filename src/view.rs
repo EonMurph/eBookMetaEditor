@@ -40,6 +40,11 @@ impl View {
             _ => {}
         };
 
+        frame.render_widget(
+            Block::new().style(Style::default().bg(Color::Rgb(0, 0, 0))),
+            frame.area(),
+        );
+
         Ok(())
     }
 
