@@ -60,7 +60,6 @@ impl FromIterator<PathBuf> for FileList {
 /// Struct to hold possible input fields for editing
 #[derive(Hash, Eq, PartialEq)]
 pub enum InputField {
-    Author,
     Series,
     Format,
     BookOrder,
@@ -89,7 +88,7 @@ impl Input {
             series_num: 1,
             current_series_num: 0,
             file_lists: Vec::new(),
-            currently_editing: InputField::Author,
+            currently_editing: InputField::Series,
             field_values: Vec::new(),
             file_table_states: Vec::new(),
         }

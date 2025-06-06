@@ -196,18 +196,17 @@ impl View {
     fn draw_book_data_input(model: &mut Model, frame: &mut Frame, area: Rect) {
         let chunks = Layout::vertical([
             Constraint::Ratio(1, 6),
-            Constraint::Ratio(1, 6),
-            Constraint::Ratio(2, 3),
+            Constraint::Ratio(1, 12),
+            Constraint::Ratio(9, 12),
         ])
         .split(area);
         let top_chunks =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .split(chunks[0]);
 
-        let input_chunks: [Rect; 3] = [
+        let input_chunks: [Rect; 2] = [
             View::centered_rect(70, 80, top_chunks[0]),
             View::centered_rect(70, 80, top_chunks[1]),
-            View::centered_rect(50, 75, chunks[1]),
         ];
         let border_color = |field: InputField| {
             if model.inputs.currently_editing == field {
@@ -218,28 +217,18 @@ impl View {
         };
         frame.render_widget(
             Block::bordered()
-                .border_style(border_color(InputField::Author))
-                .title("Author Name"),
-            input_chunks[0],
-        );
-        frame.render_widget(
-            Block::bordered()
                 .border_style(border_color(InputField::Series))
                 .title("Series Name"),
-            input_chunks[1],
+            input_chunks[0],
         );
         frame.render_widget(
             Block::bordered()
                 .border_style(border_color(InputField::Format))
                 .title("Format String"),
-            input_chunks[2],
+            input_chunks[1],
         );
 
         let inputs: Vec<Paragraph> = Vec::from([
-            Paragraph::new(Line::from(
-                model.inputs.field_values[model.inputs.current_series_num][&InputField::Author]
-                    .as_str(),
-            )),
             Paragraph::new(Line::from(
                 model.inputs.field_values[model.inputs.current_series_num][&InputField::Series]
                     .as_str(),
@@ -279,7 +268,8 @@ impl View {
         // Columns widths are constrained in the same way as Layout...
         let widths = [
             Constraint::Percentage(5),
-            Constraint::Percentage(45),
+            Constraint::Percentage(35),
+            Constraint::Percentage(10),
             Constraint::Percentage(50),
         ];
 

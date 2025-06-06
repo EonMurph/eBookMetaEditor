@@ -33,7 +33,7 @@ pub enum EventMessage {
     /// Change current directory in selection page
     ChangeDirectory(PathBuf),
     /// Change the input field being worked on
-    ChangeField(Direction),
+    ChangeField,
     /// Change the input field within the file table
     ChangeTableField(TableDirection),
     /// Input text into the input field
@@ -151,15 +151,12 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 file_list.state.selected = Some(0);
             }
         }
-        EventMessage::ChangeField(direction) => match direction {
-            Direction::Previous => {}
-            Direction::Next => {
-                model.inputs.currently_editing = match model.inputs.currently_editing {
-                    InputField::Author => InputField::Series,
-                    InputField::Series => InputField::Format,
-                    InputField::Format => InputField::BookOrder,
-                    InputField::BookOrder => InputField::Author,
-                }
+        EventMessage::ChangeField => {
+            model.inputs.currently_editing = match model.inputs.currently_editing {
+                InputField::Series => InputField::Format,
+                InputField::Format => InputField::BookOrder,
+                InputField::BookOrder => InputField::Series,
+                InputField::BookTitle => InputField::BookTitle,
             }
         },
         EventMessage::InputText(char) => {
@@ -305,7 +302,7 @@ fn handle_key(model: &Model, key: event::KeyEvent) -> Option<EventMessage> {
                 _ => None,
             },
             Page::BookData => match key.code {
-                KeyCode::Tab => Some(EventMessage::ChangeField(Direction::Next)),
+                KeyCode::Tab => Some(EventMessage::ChangeField),
                 _ => {
                     if model.inputs.currently_editing == InputField::BookOrder {
                         match key.code {
