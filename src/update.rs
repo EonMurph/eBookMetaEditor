@@ -148,7 +148,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                     Direction::Previous => model.current_page.saturating_sub(1),
                     Direction::Next => model.current_page.saturating_add(1) % Page::VALUES.len(),
                 },
-            }
+            };
         }
         EventMessage::SetSeriesCounter(s) => {
             // Add or subtract 1 from num series and then clamp to 0 and 127
@@ -214,7 +214,7 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                 InputField::BookOrder => InputField::Series,
                 InputField::BookTitle => InputField::BookTitle,
             }
-        },
+        }
         EventMessage::InputText(char) => {
             if model.inputs.currently_editing == InputField::BookOrder {
                 let (current_row, current_cell) = model.inputs.file_table_states[current_series]

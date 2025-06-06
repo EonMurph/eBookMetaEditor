@@ -1,5 +1,9 @@
 use std::{
-    collections::{HashMap, HashSet}, ffi::OsStr, fs::{canonicalize, read, read_dir, File}, io::{Read, Write}, path::{Path, PathBuf}
+    collections::{HashMap, HashSet},
+    ffi::OsStr,
+    fs::{File, canonicalize, read, read_dir},
+    io::{Read, Write},
+    path::{Path, PathBuf},
 };
 
 use ratatui::widgets::TableState;
