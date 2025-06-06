@@ -64,15 +64,12 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                                     .clone()
                                     .into_iter(),
                             ));
-                            model.inputs.field_values.push(HashMap::from([
-                                (InputField::Author, String::from("Surname, Forename")),
-                                (InputField::Series, String::from("Placeholder title")),
-                                (
-                                    InputField::Format,
-                                    String::from("{series_name} ({position}) - {book_title}"),
-                                ),
-                            ]));
-                            model.inputs.file_table_states.push(TableState::new());
+                            if model.inputs.series_num > model.inputs.field_values.len() as i8 {
+                                model
+                                    .inputs
+                                    .field_values
+                                    .push(HashMap::from([(InputField::BookTitle, Vec::new())]));
+                            }
                         }
                     }
                     match direction {
@@ -93,6 +90,18 @@ pub fn update(model: &mut Model, msg: EventMessage) {
                     }
                     Direction::Next => {
                         if !model.inputs.file_lists[current_series].selected.is_empty() {
+                            if model.inputs.field_values[current_series].len() == 1 {
+                                model.inputs.field_values[current_series].insert(
+                                    InputField::Series,
+                                    vec![String::from("Placeholder title")],
+                                );
+                                model.inputs.field_values[current_series].insert(
+                                    InputField::Format,
+                                    // vec![String::from("${series_name} (${position}) - ${title}")],
+                                    vec![String::from("${series} (${position}) - ${title}")],
+                                );
+                                model.inputs.file_table_states.push(TableState::new());
+                            }
                             model.current_page.saturating_add(1)
                         } else {
                             model.current_page
